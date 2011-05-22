@@ -22,6 +22,10 @@
 #include <errno.h>
 #include <sys/param.h>
 
+#ifdef __APPLE__
+#include "fuse_darwin.h"
+#endif
+
 enum  {
 	KEY_HELP,
 	KEY_HELP_NOHEADER,
@@ -82,7 +86,12 @@ static void helper_help(void)
 
 static void helper_version(void)
 {
+#ifdef __APPLE__
+	fprintf(stderr, "fuse4x library version: FUSE %s / fuse4x %s\n",
+	        PACKAGE_VERSION, FUSE4X_VERSION);
+#else
 	fprintf(stderr, "FUSE library version: %s\n", PACKAGE_VERSION);
+#endif /* __APPLE__ */
 }
 
 static int fuse_helper_opt_proc(void *data, const char *arg, int key,
@@ -112,6 +121,19 @@ static int fuse_helper_opt_proc(void *data, const char *arg, int key,
 					arg, strerror(errno));
 				return -1;
 			}
+#ifdef __APPLE__
+			else {
+				struct stat sb;
+				if (stat(mountpoint, &sb) != 0) {
+					fprintf(stderr, "fuse: failed to stat mount point `%s': %s\n", mountpoint, strerror(errno));
+					return -1;
+				}
+				if ((sb.st_mode & S_IFMT) != S_IFDIR) {
+					fprintf(stderr, "fuse: mount point is not a directory `%s'\n", mountpoint);
+					return -1;
+				}
+			}
+#endif /* __APPLE__ */
 			return fuse_opt_add_opt(&hopts->mountpoint, mountpoint);
 		} else {
 			fprintf(stderr, "fuse: invalid argument `%s'\n", arg);
@@ -254,6 +276,13 @@ struct fuse *fuse_setup_common(int argc, char *argv[],
 	if (res == -1)
 		return NULL;
 
+#ifdef __APPLE__
+	if (!*mountpoint) {
+		fprintf(stderr, "fuse: no mount point\n");
+		return NULL;
+	}
+#endif /* __APPLE__ */
+
 	ch = fuse_mount_common(*mountpoint, &args);
 	if (!ch) {
 		fuse_opt_free_args(&args);
@@ -357,7 +386,7 @@ int fuse_version(void)
 
 #include "fuse_compat.h"
 
-#ifndef __FreeBSD__
+#if ( !__FreeBSD__ && !__APPLE__ )
 
 struct fuse *fuse_setup_compat22(int argc, char *argv[],
 				 const struct fuse_operations_compat22 *op,
@@ -409,13 +438,15 @@ int fuse_mount_compat1(const char *mountpoint, const char *args[])
 	return fuse_mount_compat22(mountpoint, NULL);
 }
 
+#ifndef __APPLE__
 FUSE_SYMVER(".symver fuse_setup_compat2,__fuse_setup@");
 FUSE_SYMVER(".symver fuse_setup_compat22,fuse_setup@FUSE_2.2");
 FUSE_SYMVER(".symver fuse_teardown,__fuse_teardown@");
 FUSE_SYMVER(".symver fuse_main_compat2,fuse_main@");
 FUSE_SYMVER(".symver fuse_main_real_compat22,fuse_main_real@FUSE_2.2");
+#endif
 
-#endif /* __FreeBSD__ */
+#endif /* !__FreeBSD__ && !__APPLE__ */
 
 
 struct fuse *fuse_setup_compat25(int argc, char *argv[],
@@ -447,7 +478,9 @@ int fuse_mount_compat25(const char *mountpoint, struct fuse_args *args)
 	return fuse_kern_mount(mountpoint, args);
 }
 
+#ifndef __APPLE__
 FUSE_SYMVER(".symver fuse_setup_compat25,fuse_setup@FUSE_2.5");
 FUSE_SYMVER(".symver fuse_teardown_compat22,fuse_teardown@FUSE_2.2");
 FUSE_SYMVER(".symver fuse_main_real_compat25,fuse_main_real@FUSE_2.5");
 FUSE_SYMVER(".symver fuse_mount_compat25,fuse_mount@FUSE_2.5");
+# endif

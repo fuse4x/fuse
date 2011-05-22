@@ -123,6 +123,12 @@ struct fuse_ctx {
 #define FUSE_SET_ATTR_MTIME	(1 << 5)
 #define FUSE_SET_ATTR_ATIME_NOW	(1 << 7)
 #define FUSE_SET_ATTR_MTIME_NOW	(1 << 8)
+#ifdef __APPLE__
+#define FUSE_SET_ATTR_CRTIME	(1 << 28)
+#define FUSE_SET_ATTR_CHGTIME	(1 << 29)
+#define FUSE_SET_ATTR_BKUPTIME	(1 << 30)
+#define FUSE_SET_ATTR_FLAGS	(1 << 31)
+#endif /* __APPLE__ */
 
 /* ----------------------------------------------------------- *
  * Request methods and replies				       *
@@ -629,8 +635,13 @@ struct fuse_lowlevel_ops {
 	 * Valid replies:
 	 *   fuse_reply_err
 	 */
+#ifdef __APPLE__
+	void (*setxattr) (fuse_req_t req, fuse_ino_t ino, const char *name,
+			  const char *value, size_t size, int flags, uint32_t position);
+#else
 	void (*setxattr) (fuse_req_t req, fuse_ino_t ino, const char *name,
 			  const char *value, size_t size, int flags);
+#endif /* __APPLE__ */
 
 	/**
 	 * Get an extended attribute
@@ -654,8 +665,13 @@ struct fuse_lowlevel_ops {
 	 * @param name of the extended attribute
 	 * @param size maximum size of the value to send
 	 */
+#ifdef __APPLE__
+	void (*getxattr) (fuse_req_t req, fuse_ino_t ino, const char *name,
+			  size_t size, uint32_t position);
+#else
 	void (*getxattr) (fuse_req_t req, fuse_ino_t ino, const char *name,
 			  size_t size);
+#endif /* __APPLE__ */
 
 	/**
 	 * List extended attribute names
@@ -873,6 +889,40 @@ struct fuse_lowlevel_ops {
 	 */
 	void (*poll) (fuse_req_t req, fuse_ino_t ino, struct fuse_file_info *fi,
 		      struct fuse_pollhandle *ph);
+
+#ifdef __APPLE__
+
+        void (*reserved00) (fuse_req_t req, fuse_ino_t ino,
+                            void *, void *, void *, void *, void *, void *);
+        void (*reserved01) (fuse_req_t req, fuse_ino_t ino,
+                            void *, void *, void *, void *, void *, void *);
+        void (*reserved02) (fuse_req_t req, fuse_ino_t ino,
+                            void *, void *, void *, void *, void *, void *);
+        void (*reserved03) (fuse_req_t req, fuse_ino_t ino,
+                            void *, void *, void *, void *, void *, void *);
+        void (*reserved04) (fuse_req_t req, fuse_ino_t ino,
+                            void *, void *, void *, void *, void *, void *);
+        void (*reserved05) (fuse_req_t req, fuse_ino_t ino,
+                            void *, void *, void *, void *, void *, void *);
+        void (*reserved06) (fuse_req_t req, fuse_ino_t ino,
+                            void *, void *, void *, void *, void *, void *);
+        void (*reserved07) (fuse_req_t req, fuse_ino_t ino,
+                            void *, void *, void *, void *, void *, void *);
+
+        void (*setvolname) (fuse_req_t req, const char *name);
+
+	void (*exchange) (fuse_req_t req, fuse_ino_t parent, const char *name,
+			  fuse_ino_t newparent, const char *newname,
+                          unsigned long options);
+
+        void (*getxtimes) (fuse_req_t req, fuse_ino_t ino,
+			   struct fuse_file_info *);
+
+	void (*setattr_x) (fuse_req_t req, fuse_ino_t ino,
+			   struct setattr_x *attr, int to_set,
+			   struct fuse_file_info *fi);
+
+#endif /* __APPLE__ */
 };
 
 /**

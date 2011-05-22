@@ -15,6 +15,10 @@
 #include <unistd.h>
 #include <assert.h>
 
+#ifdef __APPLE__
+#include "fuse_darwin.h"
+#endif
+
 static int fuse_kern_chan_receive(struct fuse_chan **chp, char *buf,
 				  size_t size)
 {
@@ -77,10 +81,20 @@ static int fuse_kern_chan_send(struct fuse_chan *ch, const struct iovec iov[],
 
 static void fuse_kern_chan_destroy(struct fuse_chan *ch)
 {
+#ifdef __APPLE__
+	int fd = fuse_chan_fd(ch);
+	(void)ioctl(fd, FUSEDEVIOCSETDAEMONDEAD, &fd);
+	close(fd);
+#else
 	close(fuse_chan_fd(ch));
+#endif /* __APPLE__ */
 }
 
+#ifdef __APPLE__
+#define MIN_BUFSIZE ((FUSE_DEFAULT_USERKERNEL_BUFSIZE) + 0x1000)
+#else
 #define MIN_BUFSIZE 0x21000
+#endif /* __APPLE__ */
 
 struct fuse_chan *fuse_kern_chan_new(int fd)
 {
