@@ -1,3 +1,5 @@
+.cproject
+.project
 *.lo
 m4/
 fuse.pc

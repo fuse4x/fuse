@@ -467,7 +467,7 @@ fuse_mount_core(const char *mountpoint, const char *opts)
 	int fd;
 	int result;
 	char *fdnam, *dev;
-	pid_t pid, cpid;
+	pid_t pid;
 	int status;
 	const char *mountprog = FUSE4X_MOUNT_PROG;
 
@@ -610,57 +610,44 @@ mount:
 	if (getenv("FUSE_NO_MOUNT") || ! mountpoint)
 		goto out;
 
+	// TODO: Replace fork with mount() syscall
 	pid = fork();
-	cpid = pid;
-
 	if (pid == -1) {
 		perror("fuse4x: fork() failed");
 		close(fd);
-		return -1;
+		exit(1);
 	}
 
 	if (pid == 0) {
+		const char *argv[32];
+		int a = 0;
 
-		pid = fork();
-		if (pid == -1) {
-			perror("fuse4x: fork() failed");
-			close(fd);
-			exit(1);
+		if (! fdnam)
+			asprintf(&fdnam, "%d", fd);
+
+		argv[a++] = mountprog;
+		if (opts) {
+			argv[a++] = "-o";
+			argv[a++] = opts;
 		}
+		argv[a++] = fdnam;
+		argv[a++] = mountpoint;
+		argv[a++] = NULL;
 
-		if (pid == 0) {
-			const char *argv[32];
-			int a = 0;
-
-			if (! fdnam)
-				asprintf(&fdnam, "%d", fd);
-
-			argv[a++] = mountprog;
-			if (opts) {
-				argv[a++] = "-o";
-				argv[a++] = opts;
+		{
+			char title[MAXPATHLEN + 1] = { 0 };
+			u_int32_t len = MAXPATHLEN;
+			int ret = proc_pidpath(getpid(), title, len);
+			if (ret) {
+				setenv("MOUNT_FUSEFS_DAEMON_PATH", title, 1);
 			}
-			argv[a++] = fdnam;
-			argv[a++] = mountpoint;
-			argv[a++] = NULL;
-
-			{
-				char title[MAXPATHLEN + 1] = { 0 };
-				u_int32_t len = MAXPATHLEN;
-				int ret = proc_pidpath(getpid(), title, len);
-				if (ret) {
-					setenv("MOUNT_FUSEFS_DAEMON_PATH", title, 1);
-				}
-			}
-			execvp(mountprog, (char **) argv);
-			perror("fuse4x: failed to exec mount program");
-			exit(1);
 		}
-
-		_exit(0);
+		execvp(mountprog, (char **) argv);
+		perror("fuse4x: failed to exec mount program");
+		exit(1);
 	}
 
-	if (waitpid(cpid, &status, 0) == -1 || WEXITSTATUS(status) != 0) {
+	if (waitpid(pid, &status, 0) == -1 || WEXITSTATUS(status) != 0) {
 		perror("fuse4x: failed to mount file system");
 		close(fd);
 		return -1;
