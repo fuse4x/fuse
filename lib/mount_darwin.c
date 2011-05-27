@@ -425,18 +425,11 @@ fuse_kern_unmount(const char *mountpoint, int fd)
 	char resolved_path[PATH_MAX];
 	char *ep, *rp = NULL, *umount_cmd;
 
-	unsigned int hs_complete = 0;
-
-	ret = ioctl(fd, FUSEDEVIOCGETHANDSHAKECOMPLETE, &hs_complete);
-	if (ret || !hs_complete) {
-		return;
-	}
-
 	if (fstat(fd, &sbuf) == -1) {
 		return;
 	}
 
-	devname_r(sbuf.st_rdev, S_IFCHR, dev, 128);
+	devname_r(sbuf.st_rdev, S_IFCHR, dev, sizeof(dev));
 
 	if (strncmp(dev, FUSE4X_DEVICE_BASENAME,
 				sizeof(FUSE4X_DEVICE_BASENAME) - 1)) {

@@ -13,7 +13,6 @@ extern "C" {
 #endif
 
 #include <fuse_param.h>
-#include <fuse_ioctl.h>
 #include <fuse_version.h>
 
 

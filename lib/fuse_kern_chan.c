@@ -81,13 +81,7 @@ static int fuse_kern_chan_send(struct fuse_chan *ch, const struct iovec iov[],
 
 static void fuse_kern_chan_destroy(struct fuse_chan *ch)
 {
-#ifdef __APPLE__
-	int fd = fuse_chan_fd(ch);
-	(void)ioctl(fd, FUSEDEVIOCSETDAEMONDEAD, &fd);
-	close(fd);
-#else
 	close(fuse_chan_fd(ch));
-#endif /* __APPLE__ */
 }
 
 #ifdef __APPLE__
