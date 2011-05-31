@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DE09A93C139EE4DC00DE4AF1 /* iconv.c in Sources */ = {isa = PBXBuildFile; fileRef = DE09A938139EE4DC00DE4AF1 /* iconv.c */; };
+		DE09A93D139EE4DC00DE4AF1 /* subdir.c in Sources */ = {isa = PBXBuildFile; fileRef = DE09A939139EE4DC00DE4AF1 /* subdir.c */; };
+		DE09A93E139EE4DC00DE4AF1 /* threadid.c in Sources */ = {isa = PBXBuildFile; fileRef = DE09A93A139EE4DC00DE4AF1 /* threadid.c */; };
+		DE09A93F139EE4DC00DE4AF1 /* volicon.c in Sources */ = {isa = PBXBuildFile; fileRef = DE09A93B139EE4DC00DE4AF1 /* volicon.c */; };
 		DE31150B1395608000AB9DA8 /* cuse_lowlevel.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115001395608000AB9DA8 /* cuse_lowlevel.h */; };
 		DE31150C1395608000AB9DA8 /* fuse_common_compat.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115011395608000AB9DA8 /* fuse_common_compat.h */; };
 		DE31150D1395608000AB9DA8 /* fuse_common.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115021395608000AB9DA8 /* fuse_common.h */; };
@@ -41,6 +45,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		DE09A938139EE4DC00DE4AF1 /* iconv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iconv.c; sourceTree = "<group>"; };
+		DE09A939139EE4DC00DE4AF1 /* subdir.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = subdir.c; sourceTree = "<group>"; };
+		DE09A93A139EE4DC00DE4AF1 /* threadid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = threadid.c; sourceTree = "<group>"; };
+		DE09A93B139EE4DC00DE4AF1 /* volicon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = volicon.c; sourceTree = "<group>"; };
 		DE3115001395608000AB9DA8 /* cuse_lowlevel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cuse_lowlevel.h; path = include/cuse_lowlevel.h; sourceTree = "<group>"; };
 		DE3115011395608000AB9DA8 /* fuse_common_compat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_common_compat.h; path = include/fuse_common_compat.h; sourceTree = "<group>"; };
 		DE3115021395608000AB9DA8 /* fuse_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_common.h; path = include/fuse_common.h; sourceTree = "<group>"; };
@@ -87,6 +95,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DE09A937139EE4DC00DE4AF1 /* modules */ = {
+			isa = PBXGroup;
+			children = (
+				DE09A938139EE4DC00DE4AF1 /* iconv.c */,
+				DE09A939139EE4DC00DE4AF1 /* subdir.c */,
+				DE09A93A139EE4DC00DE4AF1 /* threadid.c */,
+				DE09A93B139EE4DC00DE4AF1 /* volicon.c */,
+			);
+			name = modules;
+			path = lib/modules;
+			sourceTree = "<group>";
+		};
 		DE4FEE34139560B900833822 /* include */ = {
 			isa = PBXGroup;
 			children = (
@@ -112,6 +132,7 @@
 		DE4FEE4D1395610C00833822 /* lib */ = {
 			isa = PBXGroup;
 			children = (
+				DE09A937139EE4DC00DE4AF1 /* modules */,
 				DE4FEE521395612A00833822 /* mount_darwin.c */,
 				DE4FEE561395612A00833822 /* ulockmgr.c */,
 				DE4FEE4E1395611D00833822 /* fuse.c */,
@@ -236,6 +257,10 @@
 				DE4FEE511395611D00833822 /* helper.c in Sources */,
 				DE4FEE571395612A00833822 /* mount_darwin.c in Sources */,
 				DE4FEE5B1395612A00833822 /* ulockmgr.c in Sources */,
+				DE09A93C139EE4DC00DE4AF1 /* iconv.c in Sources */,
+				DE09A93D139EE4DC00DE4AF1 /* subdir.c in Sources */,
+				DE09A93E139EE4DC00DE4AF1 /* threadid.c in Sources */,
+				DE09A93F139EE4DC00DE4AF1 /* volicon.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

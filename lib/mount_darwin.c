@@ -12,14 +12,13 @@
 
 #undef _POSIX_C_SOURCE
 #include <sys/types.h>
-#include <CoreFoundation/CoreFoundation.h>
-
-#include "fuse_i.h"
-#include "fuse_opt.h"
-
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <sys/sysctl.h>
+#include <sys/param.h>
+#include <sys/mount.h>
+#include <sys/utsname.h>
+
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -29,326 +28,246 @@
 #include <string.h>
 #include <paths.h>
 
-#include <libproc.h>
-#include <sys/utsname.h>
+#include <CoreFoundation/CoreFoundation.h>
 
-#include <sys/param.h>
-#include <sys/mount.h>
-#include <AssertMacros.h>
-
+#include "fuse_i.h"
+#include "fuse_opt.h"
 #include "fuse_darwin.h"
+#include <fuse_mount.h>
 
-static int quiet_mode = 0;
-
-static long
-fuse_os_version_major_np(void)
-{
-	int ret = 0;
-	long major = 0;
-	char *c = NULL;
-	struct utsname u;
-	size_t oldlen;
-
-	oldlen = sizeof(u.release);
-
-	ret = sysctlbyname("kern.osrelease", u.release, &oldlen, NULL, 0);
-	if (ret != 0) {
-		return -1;
-	}
-
-	c = strchr(u.release, '.');
-	if (c == NULL) {
-		return -1;
-	}
-
-	*c = '\0';
-
-	errno = 0;
-	major = strtol(u.release, NULL, 10);
-	if ((errno == EINVAL) || (errno == ERANGE)) {
-		return -1;
-	}
-
-	return major;
-}
-
-static int
-fuse_running_under_rosetta(void)
-{
-	int result = 0;
-	int is_native = 1;
-	size_t sz = sizeof(result);
-
-	int ret = sysctlbyname("sysctl.proc_native", &result, &sz, NULL, (size_t)0);
-	if ((ret == 0) && !result) {
-		is_native = 0;
-	}
-
-	return !is_native;
-}
-
-static int
-post_notification(char	 *name,
-				  char	 *udata_keys[],
-				  char	 *udata_values[],
-				  CFIndex nf_num)
-{
-	CFIndex i;
-	CFStringRef nf_name	  = NULL;
-	CFStringRef nf_object = NULL;
-	CFMutableDictionaryRef nf_udata	 = NULL;
-
-	CFNotificationCenterRef distributedCenter;
-	CFStringEncoding encoding = kCFStringEncodingUTF8;
-
-	distributedCenter = CFNotificationCenterGetDistributedCenter();
-
-	if (!distributedCenter) {
-		return -1;
-	}
-
-	nf_name = CFStringCreateWithCString(kCFAllocatorDefault, name, encoding);
-
-	nf_object = CFStringCreateWithCString(kCFAllocatorDefault,
-										  LIBFUSE_UNOTIFICATIONS_OBJECT,
-										  encoding);
-
-	nf_udata = CFDictionaryCreateMutable(kCFAllocatorDefault,
-										 nf_num,
-										 &kCFCopyStringDictionaryKeyCallBacks,
-										 &kCFTypeDictionaryValueCallBacks);
-
-	if (!nf_name || !nf_object || !nf_udata) {
-		goto out;
-	}
-
-	for (i = 0; i < nf_num; i++) {
-		CFStringRef a_key = CFStringCreateWithCString(kCFAllocatorDefault,
-													  udata_keys[i],
-													  kCFStringEncodingUTF8);
-		CFStringRef a_value = CFStringCreateWithCString(kCFAllocatorDefault,
-														udata_values[i],
-														kCFStringEncodingUTF8);
-		CFDictionarySetValue(nf_udata, a_key, a_value);
-		CFRelease(a_key);
-		CFRelease(a_value);
-	}
-
-	CFNotificationCenterPostNotification(distributedCenter,
-										 nf_name, nf_object, nf_udata, false);
-
-out:
-	if (nf_name) {
-		CFRelease(nf_name);
-	}
-
-	if (nf_object) {
-		CFRelease(nf_object);
-	}
-
-	if (nf_udata) {
-		CFRelease(nf_udata);
-	}
-
-	return 0;
-}
-
-enum {
-	KEY_ALLOW_ROOT,
-	KEY_AUTO_CACHE,
-	KEY_DIO,
-	KEY_HELP,
-	KEY_IGNORED,
-	KEY_KERN,
-	KEY_QUIET,
-	KEY_RO,
-	KEY_VERSION,
-	KEY_VOLICON,
+struct mount_options {
+	struct fuse_mount_args fuse_args; // mount flags for fuse4x kext
+	int standard_args; // standard XNU mount flags, see mount.h
+	bool quiet;
+	bool allow_recursion;
 };
 
-struct mount_opts {
-	int allow_other;
-	int allow_root;
-	int ishelp;
-	char *kernel_opts;
+enum {
+	KEY_RDONLY,
+	KEY_SYNCHRONOUS,
+	KEY_NOEXEC,
+	KEY_NOSUID,
+	KEY_NODEV,
+	KEY_UNION,
+	KEY_ASYNC,
+	KEY_QUARANTINE,
+	KEY_LOCAL,
+	KEY_QUOTA,
+	KEY_ROOTFS,
+	KEY_DONTBROWSE,
+	KEY_IGNORE_OWNERSHIP,
+	KEY_AUTOMOUNTED,
+	KEY_JOURNALED,
+	KEY_NOUSERXATTR,
+	KEY_DEFWRITE,
+	KEY_MULTILABEL,
+	KEY_NOATIME,
+
+	KEY_ALLOW_OTHER,
+	KEY_ALLOW_RECURSION,
+	KEY_ALLOW_ROOT,
+	KEY_AUTO_XATTR,
+	KEY_BLOCKSIZE,
+	KEY_DAEMON_TIMEOUT,
+	KEY_DEFAULT_PERMISSIONS,
+	KEY_DEFER_PERMISSIONS,
+	KEY_DIRECT_IO,
+	KEY_EXTENDED_SECURITY,
+	KEY_FSID,
+	KEY_FSNAME,
+	KEY_FSSUBTYPE,
+	KEY_FSTYPENAME,
+	KEY_INIT_TIMEOUT,
+	KEY_IOSIZE,
+	KEY_JAIL_SYMLINKS,
+	KEY_KILL_ON_UNMOUNT,
+	KEY_NEGATIVE_VNCACHE,
+	KEY_NO_ALERTS,
+	KEY_NO_APPLEDOUBLE,
+	KEY_NO_APPLEXATTR,
+	KEY_NO_ATTRCACHE,
+	KEY_NO_LOCALCACHES,
+	KEY_NO_READAHEAD,
+	KEY_NO_SYNCONCLOSE,
+	KEY_NO_SYNCWRITES,
+	KEY_NO_UBC,
+	KEY_NO_VNCACHE,
+	KEY_USE_INO,
+	KEY_VOLNAME,
+	KEY_PING_DISKARB,
+	KEY_AUTO_CACHE,
+	KEY_NATIVE_XATTR,
+	KEY_SPARSE,
+	KEY_QUIET,
+	KEY_VOLICON,
+
+	KEY_IGNORED
 };
 
 static const struct fuse_opt fuse_mount_opts[] = {
-	{ "allow_other", offsetof(struct mount_opts, allow_other), 1 },
-	{ "allow_root", offsetof(struct mount_opts, allow_root), 1 },
-	FUSE_OPT_KEY("allow_root",			KEY_ALLOW_ROOT),
-	FUSE_OPT_KEY("auto_cache",			KEY_AUTO_CACHE),
-	FUSE_OPT_KEY("-r",					KEY_RO),
-	FUSE_OPT_KEY("-h",					KEY_HELP),
-	FUSE_OPT_KEY("--help",				KEY_HELP),
-	FUSE_OPT_KEY("-V",					KEY_VERSION),
-	FUSE_OPT_KEY("--version",			KEY_VERSION),
-	/* standard FreeBSD mount options */
-	FUSE_OPT_KEY("dev",					KEY_KERN),
-	FUSE_OPT_KEY("async",				KEY_KERN),
-	FUSE_OPT_KEY("atime",				KEY_KERN),
-	FUSE_OPT_KEY("dev",					KEY_KERN),
-	FUSE_OPT_KEY("exec",				KEY_KERN),
-	FUSE_OPT_KEY("suid",				KEY_KERN),
-	FUSE_OPT_KEY("symfollow",			KEY_KERN),
-	FUSE_OPT_KEY("rdonly",				KEY_KERN),
-	FUSE_OPT_KEY("sync",				KEY_KERN),
-	FUSE_OPT_KEY("union",				KEY_KERN),
-	FUSE_OPT_KEY("userquota",			KEY_KERN),
-	FUSE_OPT_KEY("groupquota",			KEY_KERN),
-	FUSE_OPT_KEY("clusterr",			KEY_KERN),
-	FUSE_OPT_KEY("clusterw",			KEY_KERN),
-	FUSE_OPT_KEY("suiddir",				KEY_KERN),
-	FUSE_OPT_KEY("snapshot",			KEY_KERN),
-	FUSE_OPT_KEY("multilabel",			KEY_KERN),
-	FUSE_OPT_KEY("acls",				KEY_KERN),
-	FUSE_OPT_KEY("force",				KEY_KERN),
-	FUSE_OPT_KEY("update",				KEY_KERN),
-	FUSE_OPT_KEY("ro",					KEY_KERN),
-	FUSE_OPT_KEY("rw",					KEY_KERN),
-	FUSE_OPT_KEY("auto",				KEY_KERN),
-	/* options supported under both Linux and FBSD */
-	FUSE_OPT_KEY("allow_other",			KEY_KERN),
-	FUSE_OPT_KEY("default_permissions", KEY_KERN),
-	/* FBSD FUSE specific mount options */
-	FUSE_OPT_KEY("private",				KEY_KERN),
-	FUSE_OPT_KEY("neglect_shares",		KEY_KERN),
-	FUSE_OPT_KEY("push_symlinks_in",	KEY_KERN),
-	/* stock FBSD mountopt parsing routine lets anything be negated... */
-	FUSE_OPT_KEY("nodev",				KEY_KERN),
-	FUSE_OPT_KEY("noasync",				KEY_KERN),
-	FUSE_OPT_KEY("noatime",				KEY_KERN),
-	FUSE_OPT_KEY("nodev",				KEY_KERN),
-	FUSE_OPT_KEY("noexec",				KEY_KERN),
-	FUSE_OPT_KEY("nosuid",				KEY_KERN),
-	FUSE_OPT_KEY("nosymfollow",			KEY_KERN),
-	FUSE_OPT_KEY("nordonly",			KEY_KERN),
-	FUSE_OPT_KEY("nosync",				KEY_KERN),
-	FUSE_OPT_KEY("nounion",				KEY_KERN),
-	FUSE_OPT_KEY("nouserquota",			KEY_KERN),
-	FUSE_OPT_KEY("nogroupquota",		KEY_KERN),
-	FUSE_OPT_KEY("noclusterr",			KEY_KERN),
-	FUSE_OPT_KEY("noclusterw",			KEY_KERN),
-	FUSE_OPT_KEY("nosuiddir",			KEY_KERN),
-	FUSE_OPT_KEY("nosnapshot",			KEY_KERN),
-	FUSE_OPT_KEY("nomultilabel",		KEY_KERN),
-	FUSE_OPT_KEY("noacls",				KEY_KERN),
-	FUSE_OPT_KEY("noforce",				KEY_KERN),
-	FUSE_OPT_KEY("noupdate",			KEY_KERN),
-	FUSE_OPT_KEY("noro",				KEY_KERN),
-	FUSE_OPT_KEY("norw",				KEY_KERN),
-	FUSE_OPT_KEY("noauto",				KEY_KERN),
-	FUSE_OPT_KEY("noallow_other",		KEY_KERN),
-	FUSE_OPT_KEY("nodefault_permissions", KEY_KERN),
-	FUSE_OPT_KEY("noprivate",			KEY_KERN),
-	FUSE_OPT_KEY("noneglect_shares",	KEY_KERN),
-	FUSE_OPT_KEY("nopush_symlinks_in",	KEY_KERN),
-	/* Mac OS X options */
-	FUSE_OPT_KEY("allow_recursion",		KEY_KERN),
-	FUSE_OPT_KEY("allow_root",			KEY_KERN), /* need to pass this on */
-	FUSE_OPT_KEY("auto_xattr",			KEY_KERN),
-	FUSE_OPT_KEY("automounted",			KEY_IGNORED),
-	FUSE_OPT_KEY("blocksize=",			KEY_KERN),
-	FUSE_OPT_KEY("daemon_timeout=",		KEY_KERN),
-	FUSE_OPT_KEY("default_permissions", KEY_KERN),
-	FUSE_OPT_KEY("defer_permissions",	KEY_KERN),
-	FUSE_OPT_KEY("direct_io",			KEY_DIO),
-	FUSE_OPT_KEY("extended_security",	KEY_KERN),
-	FUSE_OPT_KEY("fsid=",				KEY_KERN),
-	FUSE_OPT_KEY("fsname=",				KEY_KERN),
-	FUSE_OPT_KEY("fssubtype=",			KEY_KERN),
-	FUSE_OPT_KEY("fstypename=",			KEY_KERN),
-	FUSE_OPT_KEY("init_timeout=",		KEY_KERN),
-	FUSE_OPT_KEY("iosize=",				KEY_KERN),
-	FUSE_OPT_KEY("jail_symlinks",		KEY_KERN),
-	FUSE_OPT_KEY("kill_on_unmount",		KEY_KERN),
-	FUSE_OPT_KEY("local",				KEY_KERN),
-	FUSE_OPT_KEY("native_xattr",		KEY_KERN),
-	FUSE_OPT_KEY("negative_vncache",	KEY_KERN),
-	FUSE_OPT_KEY("noalerts",			KEY_KERN),
-	FUSE_OPT_KEY("noappledouble",		KEY_KERN),
-	FUSE_OPT_KEY("noapplexattr",		KEY_KERN),
-	FUSE_OPT_KEY("noattrcache",			KEY_KERN),
-	FUSE_OPT_KEY("nobrowse",			KEY_KERN),
-	FUSE_OPT_KEY("nolocalcaches",		KEY_KERN),
-	FUSE_OPT_KEY("noping_diskarb",		KEY_IGNORED),
-	FUSE_OPT_KEY("noreadahead",			KEY_KERN),
-	FUSE_OPT_KEY("nosynconclose",		KEY_KERN),
-	FUSE_OPT_KEY("nosyncwrites",		KEY_KERN),
-	FUSE_OPT_KEY("noubc",				KEY_KERN),
-	FUSE_OPT_KEY("novncache",			KEY_KERN),
-	FUSE_OPT_KEY("ping_diskarb",		KEY_IGNORED),
-	FUSE_OPT_KEY("quiet",				KEY_QUIET),
-	FUSE_OPT_KEY("slow_statfs",			KEY_KERN),
-	FUSE_OPT_KEY("sparse",				KEY_KERN),
-	FUSE_OPT_KEY("subtype=",			KEY_IGNORED),
-	FUSE_OPT_KEY("volicon=",			KEY_VOLICON),
-	FUSE_OPT_KEY("volname=",			KEY_KERN),
+	// Standard flags for XNU
+	// See http://fxr.watson.org/fxr/source/bsd/sys/mount.h?v=xnu-1456.1.26#L279
+	FUSE_OPT_KEY("-r", KEY_RDONLY),
+	FUSE_OPT_KEY("rdonly", KEY_RDONLY),
+	FUSE_OPT_KEY("sync", KEY_SYNCHRONOUS),
+	FUSE_OPT_KEY("noexec", KEY_NOEXEC),
+	FUSE_OPT_KEY("nosuid", KEY_NOSUID),
+	FUSE_OPT_KEY("nodev", KEY_NODEV),
+	FUSE_OPT_KEY("union", KEY_UNION),
+	FUSE_OPT_KEY("async", KEY_ASYNC),
+	FUSE_OPT_KEY("quarantine", KEY_QUARANTINE),
+	FUSE_OPT_KEY("local", KEY_LOCAL),
+	FUSE_OPT_KEY("quota", KEY_QUOTA),
+	FUSE_OPT_KEY("rootfs", KEY_ROOTFS),
+	FUSE_OPT_KEY("nobrowse", KEY_DONTBROWSE),
+	FUSE_OPT_KEY("noowners", KEY_IGNORE_OWNERSHIP),
+	FUSE_OPT_KEY("automounted", KEY_AUTOMOUNTED),
+	FUSE_OPT_KEY("journaled", KEY_JOURNALED),
+	FUSE_OPT_KEY("nouserxattr", KEY_NOUSERXATTR),
+	FUSE_OPT_KEY("defwrite", KEY_DEFWRITE),
+	FUSE_OPT_KEY("multilabel", KEY_MULTILABEL),
+	FUSE_OPT_KEY("noatime", KEY_NOATIME),
+
+	// fuse4x specific mount flags
+	FUSE_OPT_KEY("allow_other", KEY_ALLOW_OTHER),
+	FUSE_OPT_KEY("allow_recursion", KEY_ALLOW_RECURSION),
+	FUSE_OPT_KEY("allow_root", KEY_ALLOW_ROOT),
+	FUSE_OPT_KEY("auto_xattr", KEY_AUTO_XATTR),
+	FUSE_OPT_KEY("blocksize=", KEY_BLOCKSIZE),
+	FUSE_OPT_KEY("daemon_timeout=", KEY_DAEMON_TIMEOUT),
+	FUSE_OPT_KEY("default_permissions", KEY_DEFAULT_PERMISSIONS),
+	FUSE_OPT_KEY("defer_permissions", KEY_DEFER_PERMISSIONS),
+	FUSE_OPT_KEY("direct_io", KEY_DIRECT_IO),
+	FUSE_OPT_KEY("extended_security", KEY_EXTENDED_SECURITY),
+	FUSE_OPT_KEY("fsid=", KEY_FSID),
+	FUSE_OPT_KEY("fsname=", KEY_FSNAME),
+	FUSE_OPT_KEY("fssubtype=", KEY_FSSUBTYPE),
+	FUSE_OPT_KEY("fstypename=", KEY_FSTYPENAME),
+	FUSE_OPT_KEY("init_timeout=", KEY_INIT_TIMEOUT),
+	FUSE_OPT_KEY("iosize=", KEY_IOSIZE),
+	FUSE_OPT_KEY("jail_symlinks", KEY_JAIL_SYMLINKS),
+	FUSE_OPT_KEY("kill_on_unmount", KEY_KILL_ON_UNMOUNT),
+	FUSE_OPT_KEY("negative_vncache", KEY_NEGATIVE_VNCACHE),
+	FUSE_OPT_KEY("noalerts", KEY_NO_ALERTS),
+	FUSE_OPT_KEY("noappledouble", KEY_NO_APPLEDOUBLE),
+	FUSE_OPT_KEY("noapplexattr", KEY_NO_APPLEXATTR),
+	FUSE_OPT_KEY("noattrcache", KEY_NO_ATTRCACHE),
+	FUSE_OPT_KEY("nolocalcaches", KEY_NO_LOCALCACHES),
+	FUSE_OPT_KEY("noreadahead", KEY_NO_READAHEAD),
+	FUSE_OPT_KEY("nosynconclose", KEY_NO_SYNCONCLOSE),
+	FUSE_OPT_KEY("nosyncwrites", KEY_NO_SYNCWRITES),
+	FUSE_OPT_KEY("noubc", KEY_NO_UBC),
+	FUSE_OPT_KEY("novncache", KEY_NO_VNCACHE),
+	FUSE_OPT_KEY("use_ino", KEY_USE_INO),
+	FUSE_OPT_KEY("volname=", KEY_VOLNAME),
+	FUSE_OPT_KEY("volicon=", KEY_VOLICON),
+	FUSE_OPT_KEY("ping_diskarb", KEY_PING_DISKARB),
+	FUSE_OPT_KEY("auto_cache", KEY_AUTO_CACHE),
+	FUSE_OPT_KEY("native_xattr", KEY_NATIVE_XATTR),
+	FUSE_OPT_KEY("sparse", KEY_SPARSE),
+	FUSE_OPT_KEY("quiet", KEY_QUIET),
+
+	FUSE_OPT_KEY("subtype=", KEY_IGNORED),
 	FUSE_OPT_END
 };
 
-static void
-mount_help(void)
-{
-	system(FUSE4X_MOUNT_PROG " --help");
-	fputc('\n', stderr);
-}
 
-static void
-mount_version(void)
-{
-	system(FUSE4X_MOUNT_PROG " --version");
-}
+#define STANDARD_MOUNT_OPT(name) case KEY_ ## name: mo->standard_args |= MNT_ ## name; return 0;
+#define FUSE_MOUNT_OPT(name) case KEY_ ## name: mo->fuse_args.altflags |= FUSE_MOPT_ ## name; return 0;
 
-static int
-fuse_mount_opt_proc(void *data, const char *arg, int key,
-					struct fuse_args *outargs)
+#define FUSE_MOUNT_OPT_PARSE_U32(key, param_name) \
+	case KEY_ ## key: \
+		if (sscanf(arg, #param_name "=%u", &(param)) < 0) { \
+			perror("fuse4x " #param_name " parameter:"); \
+			return -1; \
+		} \
+		mo->fuse_args.param_name = (uint32_t)param; \
+		mo->fuse_args.altflags |= FUSE_MOPT_ ## key; \
+		return 0;
+
+#define FUSE_MOUNT_OPT_PARSE_STRING(key, param_name, length) \
+	case KEY_ ## key: \
+		if (strlcpy(mo->fuse_args.param_name, arg+strlen(#param_name "="), length) >= length) { \
+			fprintf(stderr, "fuse4x: " #param_name " parameter too long\n"); \
+			return -1; \
+		}; \
+		return 0;
+
+
+static int fuse_mount_opt_proc(void *data, const char *arg, int key,
+		struct fuse_args *outargs)
 {
-	struct mount_opts *mo = data;
+	struct mount_options *mo = data;
+	unsigned int param;
 
 	switch (key) {
 
-	case KEY_AUTO_CACHE:
-		if (fuse_opt_add_opt(&mo->kernel_opts, "auto_cache") == -1 ||
-			fuse_opt_add_arg(outargs, "-oauto_cache") == -1)
-			return -1;
-		return 0;
+	STANDARD_MOUNT_OPT(RDONLY)
+	STANDARD_MOUNT_OPT(SYNCHRONOUS)
+	STANDARD_MOUNT_OPT(NOEXEC)
+	STANDARD_MOUNT_OPT(NOSUID)
+	STANDARD_MOUNT_OPT(NODEV)
+	STANDARD_MOUNT_OPT(UNION)
+	STANDARD_MOUNT_OPT(ASYNC)
+	STANDARD_MOUNT_OPT(QUARANTINE)
+	STANDARD_MOUNT_OPT(LOCAL)
+	STANDARD_MOUNT_OPT(QUOTA)
+	STANDARD_MOUNT_OPT(ROOTFS)
+	STANDARD_MOUNT_OPT(DONTBROWSE)
+	STANDARD_MOUNT_OPT(IGNORE_OWNERSHIP)
+	STANDARD_MOUNT_OPT(AUTOMOUNTED)
+	STANDARD_MOUNT_OPT(JOURNALED)
+	STANDARD_MOUNT_OPT(NOUSERXATTR)
+	STANDARD_MOUNT_OPT(DEFWRITE)
+	STANDARD_MOUNT_OPT(MULTILABEL)
+	STANDARD_MOUNT_OPT(NOATIME)
 
-	case KEY_ALLOW_ROOT:
-		if (fuse_opt_add_opt(&mo->kernel_opts, "allow_other") == -1 ||
-			fuse_opt_add_arg(outargs, "-oallow_root") == -1)
-			return -1;
-		return 0;
-
-	case KEY_RO:
-		arg = "ro";
-		/* fall through */
-
-	case KEY_KERN:
-		return fuse_opt_add_opt(&mo->kernel_opts, arg);
-
-	case KEY_DIO:
-		  if (fuse_opt_add_opt(&mo->kernel_opts, "direct_io") == -1 ||
-			  (fuse_opt_add_arg(outargs, "-odirect_io") == -1))
-			return -1;
-		return 0;
-
-	case KEY_IGNORED:
-		return 0;
+	FUSE_MOUNT_OPT(ALLOW_OTHER)
+	FUSE_MOUNT_OPT(ALLOW_ROOT)
+	FUSE_MOUNT_OPT(AUTO_XATTR)
+	FUSE_MOUNT_OPT(DEFAULT_PERMISSIONS)
+	FUSE_MOUNT_OPT(DEFER_PERMISSIONS)
+	FUSE_MOUNT_OPT(DIRECT_IO)
+	FUSE_MOUNT_OPT(EXTENDED_SECURITY)
+	FUSE_MOUNT_OPT(JAIL_SYMLINKS)
+	FUSE_MOUNT_OPT(KILL_ON_UNMOUNT)
+	FUSE_MOUNT_OPT(NEGATIVE_VNCACHE)
+	FUSE_MOUNT_OPT(NO_ALERTS)
+	FUSE_MOUNT_OPT(NO_APPLEDOUBLE)
+	FUSE_MOUNT_OPT(NO_APPLEXATTR)
+	FUSE_MOUNT_OPT(NO_ATTRCACHE)
+	FUSE_MOUNT_OPT(NO_READAHEAD)
+	FUSE_MOUNT_OPT(NO_SYNCONCLOSE)
+	FUSE_MOUNT_OPT(NO_SYNCWRITES)
+	FUSE_MOUNT_OPT(NO_UBC)
+	FUSE_MOUNT_OPT(NO_VNCACHE)
+	FUSE_MOUNT_OPT(USE_INO)
+	FUSE_MOUNT_OPT(PING_DISKARB)
+	FUSE_MOUNT_OPT(AUTO_CACHE)
+	FUSE_MOUNT_OPT(NATIVE_XATTR)
+	FUSE_MOUNT_OPT(SPARSE)
 
 	case KEY_QUIET:
-		quiet_mode = 1;
+		mo->quiet = true;
+		mo->fuse_args.altflags |= FUSE_MOPT_QUIET;
 		return 0;
 
-	case KEY_VOLICON:
-	{
+	case KEY_ALLOW_RECURSION:
+		mo->allow_recursion = true;
+		return 0;
+
+	case KEY_NO_LOCALCACHES:
+		mo->fuse_args.altflags |= (FUSE_MOPT_NO_ATTRCACHE | FUSE_MOPT_NO_READAHEAD | FUSE_MOPT_NO_UBC | FUSE_MOPT_NO_VNCACHE);
+		return 0;
+
+	case KEY_VOLICON: {
 		char volicon_arg[MAXPATHLEN + 32];
 		char *volicon_path = strchr(arg, '=');
 		if (!volicon_path) {
 			return -1;
 		}
 		if (snprintf(volicon_arg, sizeof(volicon_arg),
-					 "-omodules=volicon,iconpath%s", volicon_path) <= 0) {
+						"-omodules=volicon,iconpath%s", volicon_path) <= 0) {
 			return -1;
 		}
 		if (fuse_opt_add_arg(outargs, volicon_arg) == -1) {
@@ -358,247 +277,336 @@ fuse_mount_opt_proc(void *data, const char *arg, int key,
 		return 0;
 	}
 
-	case KEY_HELP:
-		mount_help();
-		mo->ishelp = 1;
-		break;
+	FUSE_MOUNT_OPT_PARSE_U32(BLOCKSIZE, blocksize)
+	FUSE_MOUNT_OPT_PARSE_U32(DAEMON_TIMEOUT, daemon_timeout)
+	FUSE_MOUNT_OPT_PARSE_U32(INIT_TIMEOUT, init_timeout)
+	FUSE_MOUNT_OPT_PARSE_U32(IOSIZE, iosize)
+	FUSE_MOUNT_OPT_PARSE_U32(FSID, fsid)
+	FUSE_MOUNT_OPT_PARSE_U32(FSSUBTYPE, fssubtype)
 
-	case KEY_VERSION:
-		mount_version();
-		mo->ishelp = 1;
-		break;
+	FUSE_MOUNT_OPT_PARSE_STRING(FSNAME, fsname, MAXPATHLEN)
+	FUSE_MOUNT_OPT_PARSE_STRING(FSTYPENAME, fstypename, MFSTYPENAMELEN)
+	FUSE_MOUNT_OPT_PARSE_STRING(VOLNAME, volname, MAXPATHLEN)
+
+	case KEY_IGNORED:
+		return 0;
 	}
+
 	return 1;
 }
 
-void
-fuse_kern_unmount(const char *mountpoint, int fd)
+static int post_notification(char *name, char const *udata_keys[], char const *udata_values[], CFIndex nfNum)
 {
-	int ret;
-	struct stat sbuf;
-	char dev[128];
-	char resolved_path[PATH_MAX];
-	char *ep, *rp = NULL, *umount_cmd;
+	CFNotificationCenterRef distributedCenter = CFNotificationCenterGetDistributedCenter();
 
-	if (fstat(fd, &sbuf) == -1) {
-		return;
-	}
-
-	devname_r(sbuf.st_rdev, S_IFCHR, dev, sizeof(dev));
-
-	if (strncmp(dev, FUSE4X_DEVICE_BASENAME,
-				sizeof(FUSE4X_DEVICE_BASENAME) - 1)) {
-		return;
-	}
-
-	strtol(dev + 4, &ep, 10);
-	if (*ep != '\0') {
-		return;
-	}
-
-	close(fd);
-
-	unmount(mountpoint, MNT_FORCE);
-
-	return;
-}
-
-void
-fuse_unmount_compat22(const char *mountpoint)
-{
-	unmount(mountpoint, MNT_FORCE);
-}
-
-static int
-fuse_mount_core(const char *mountpoint, const char *opts)
-{
-	int fd;
-	int result;
-	char *fdnam, *dev;
-	pid_t pid;
-	int status;
-	const char *mountprog = FUSE4X_MOUNT_PROG;
-
-	if (!mountpoint) {
-		fprintf(stderr, "missing or invalid mount point\n");
+	if (!distributedCenter) {
 		return -1;
 	}
 
-	if (fuse_running_under_rosetta()) {
-		fprintf(stderr, "fuse4x does not work under Rosetta\n");
-		return -1;
+	CFStringRef nfName = CFStringCreateWithCString(kCFAllocatorDefault, name, kCFStringEncodingUTF8);
+	CFStringRef nfObject = CFStringCreateWithCString(kCFAllocatorDefault, LIBFUSE_UNOTIFICATIONS_OBJECT,
+			kCFStringEncodingUTF8);
+
+	CFMutableDictionaryRef nfUdata = CFDictionaryCreateMutable(kCFAllocatorDefault, nfNum,
+			&kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+
+	if (!nfName || !nfObject || !nfUdata) {
+		goto out;
 	}
 
-	/* Module loaded, but now need to check for user<->kernel match. */
+	CFIndex i = 0;
+	for (; i < nfNum; i++) {
+		CFStringRef aKey = CFStringCreateWithCString(kCFAllocatorDefault, udata_keys[i], kCFStringEncodingUTF8);
+		CFStringRef aValue = CFStringCreateWithCString(kCFAllocatorDefault, udata_values[i], kCFStringEncodingUTF8);
 
-	char   version[MAXHOSTNAMELEN + 1] = { 0 };
-	size_t version_len = MAXHOSTNAMELEN;
-	size_t version_len_desired = 0;
+		CFDictionarySetValue(nfUdata, aKey, aValue);
 
-	result = sysctlbyname(SYSCTL_FUSE4X_VERSION_NUMBER, version,
-						  &version_len, NULL, (size_t)0);
-	if (result == 0) {
-		/* sysctlbyname() includes the trailing '\0' in version_len */
-		version_len_desired = strlen(FUSE4X_VERSION) + 1;
-
-		if ((version_len != version_len_desired) ||
-			strncmp(FUSE4X_VERSION, version, version_len)) {
-			result = -1;
-		}
+		CFRelease(aKey);
+		CFRelease(aValue);
 	}
 
-	if (result) {
+	CFNotificationCenterPostNotification(distributedCenter, nfName, nfObject, nfUdata, false);
+
+out:
+	if (nfName)
+		CFRelease(nfName);
+
+	if (nfObject)
+		CFRelease(nfObject);
+
+	if (nfUdata)
+		CFRelease(nfUdata);
+
+	return 0;
+}
+
+static bool check_os_kernel_version(void)
+{
+	struct utsname u;
+
+	if (uname(&u) < 0) {
+		perror("fuse4x uname():");
+		return false;
+	}
+
+	char *c = strchr(u.release, '.');
+	if (c == NULL) {
+		return false;
+	}
+
+	*c = '\0';
+
+	errno = 0;
+	long major = strtol(u.release, NULL, 10);
+	if ((errno == EINVAL) || (errno == ERANGE)) {
+		return false;
+	}
+
+	return major >= 10;
+}
+
+static bool check_kext_version(bool quiet_mode)
+{
+	if (!check_os_kernel_version()) {
+		// TODO: Check that OS at lease 10.6
 		if (!quiet_mode) {
 			CFUserNotificationDisplayNotice(
 				(CFTimeInterval)0,
 				kCFUserNotificationCautionAlertLevel,
-				(CFURLRef)0,
-				(CFURLRef)0,
-				(CFURLRef)0,
-				CFSTR("fuse4x Runtime Version Mismatch"),
+				NULL,
+				NULL,
+				NULL,
+				CFSTR("Operating System Too Old"),
+				CFSTR("The installed fuse4x version is too new for the operating system. Please downgrade your fuse4x installation to one that is compatible with the currently running operating system."),
+				CFSTR("OK")
+			);
+		}
+		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_OSISTOOOLD, NULL, NULL, 0);
+		fprintf(stderr, "fuse4x is not supported on this MacOSX version.\n");
+		return false;
+	}
+
+	/* Check for user<->kernel match. */
+	char version[MAXHOSTNAMELEN + 1];
+	size_t version_len = MAXHOSTNAMELEN;
+
+	int result = sysctlbyname(SYSCTL_FUSE4X_VERSION_NUMBER, version, &version_len, NULL, (size_t)0);
+
+	if (result != 0) {
+		if (!quiet_mode) {
+			CFUserNotificationDisplayNotice(
+				(CFTimeInterval)0,
+				kCFUserNotificationCautionAlertLevel,
+				NULL,
+				NULL,
+				NULL,
+				CFSTR("Fuse4x kernel extension error"),
+				CFSTR("The fuse4x kernel extension is not loaded."),
+				CFSTR("OK")
+			);
+		}
+		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_INVALID_KEXT, NULL, NULL, 0);
+		fprintf(stderr, "fuse4x kernel extension is not loaded. Please load it with 'sudo kextload " FUSE4X_KEXT "'.\n");
+		return false;
+	}
+
+	if (strncmp(FUSE4X_VERSION, version, version_len)) {
+		if (!quiet_mode) {
+			CFUserNotificationDisplayNotice(
+				(CFTimeInterval)0,
+				kCFUserNotificationCautionAlertLevel,
+				NULL,
+				NULL,
+				NULL,
+				CFSTR("Fuse4x runtime version mismatch"),
 				CFSTR("The fuse4x library version this program is using is incompatible with the loaded fuse4x kernel extension."),
 				CFSTR("OK")
 			);
 		}
-		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_RUNTIMEVERSIONMISMATCH,
-						  NULL, NULL, 0);
-		fprintf(stderr,
-				"this fuse4x library version is incompatible with "
-				"the fuse4x kernel extension\n");
-		return -1;
+		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_VERSIONMISMATCH, NULL, NULL, 0);
+		fprintf(stderr, "fuse4x client library version is incompatible with the kernel extension\n");
+		return false;
 	}
 
-	fdnam = getenv("FUSE_DEV_FD");
-
-	if (fdnam) {
-
-		char *ep;
-
-		fd = strtol(fdnam, &ep, 10);
-
-		if (*ep != '\0') {
-			fprintf(stderr, "invalid value given in FUSE_DEV_FD\n");
-			return -1;
-		}
-
-		if (fd < 0)
-			return -1;
-
-		goto mount;
-	}
-
-	dev = getenv("FUSE_DEV_NAME");
-
-	if (dev) {
-		if ((fd = open(dev, O_RDWR)) < 0) {
-			perror("fuse4x: failed to open device");
-			return -1;
-		}
-	} else {
-		int r, devidx = -1;
-		char devpath[MAXPATHLEN];
-
-		for (r = 0; r < FUSE4X_NDEVICES; r++) {
-			snprintf(devpath, MAXPATHLEN - 1,
-					 _PATH_DEV FUSE4X_DEVICE_BASENAME "%d", r);
-			fd = open(devpath, O_RDWR);
-			if (fd >= 0) {
-				dev = devpath;
-				devidx = r;
-				break;
-			}
-		}
-		if (devidx == -1) {
-			perror("fuse4x: failed to open device");
-			return -1;
-		}
-	}
-
-mount:
-	if (getenv("FUSE_NO_MOUNT") || ! mountpoint)
-		goto out;
-
-	// TODO: Replace fork with mount() syscall
-	pid = fork();
-	if (pid == -1) {
-		perror("fuse4x: fork() failed");
-		close(fd);
-		exit(1);
-	}
-
-	if (pid == 0) {
-		const char *argv[32];
-		int a = 0;
-
-		if (! fdnam)
-			asprintf(&fdnam, "%d", fd);
-
-		argv[a++] = mountprog;
-		if (opts) {
-			argv[a++] = "-o";
-			argv[a++] = opts;
-		}
-		argv[a++] = fdnam;
-		argv[a++] = mountpoint;
-		argv[a++] = NULL;
-
-		{
-			char title[MAXPATHLEN + 1] = { 0 };
-			u_int32_t len = MAXPATHLEN;
-			int ret = proc_pidpath(getpid(), title, len);
-			if (ret) {
-				setenv("MOUNT_FUSEFS_DAEMON_PATH", title, 1);
-			}
-		}
-		execvp(mountprog, (char **) argv);
-		perror("fuse4x: failed to exec mount program");
-		exit(1);
-	}
-
-	if (waitpid(pid, &status, 0) == -1 || WEXITSTATUS(status) != 0) {
-		perror("fuse4x: failed to mount file system");
-		close(fd);
-		return -1;
-	}
-
-out:
-	return fd;
+	return true;
 }
 
-int
-fuse_kern_mount(const char *mountpoint, struct fuse_args *args)
+void fuse_kern_unmount(const char *mountpoint, int fd)
 {
-	struct mount_opts mo;
-	int res = -1;
+	if (!mountpoint)
+		return;
 
-	memset(&mo, 0, sizeof(mo));
+	if (fd != -1)
+		close(fd);
 
-	/* mount_fusefs should not try to spawn the daemon */
-	setenv("MOUNT_FUSEFS_SAFE", "1", 1);
+	unmount(mountpoint, MNT_FORCE);
+	return;
+}
 
-	/* to notify mount_fusefs it's called from lib */
-	setenv("MOUNT_FUSEFS_CALL_BY_LIB", "1", 1);
-
-	if (args &&
-		fuse_opt_parse(args, &mo, fuse_mount_opts, fuse_mount_opt_proc) == -1) {
+static bool check_mountpoint(const char *mountpoint, struct mount_options *opts)
+{
+	if (!mountpoint) {
+		fprintf(stderr, "fuse4x: missing or invalid mount point\n");
 		return -1;
 	}
 
-	if (mo.allow_other && mo.allow_root) {
-		fprintf(stderr,
-				"fuse4x: allow_other and allow_root are mutually exclusive\n");
-		goto out;
+	struct stat statb;
+	if ((realpath(mountpoint, opts->fuse_args.mntpath) != NULL) &&
+		(stat(opts->fuse_args.mntpath, &statb) == 0)) {
+
+		if (!S_ISDIR(statb.st_mode)) {
+			fprintf(stderr, "fuse4x: mountpoint %s is not a directory\n", opts->fuse_args.mntpath);
+			return false;
+		}
+	} else {
+		fprintf(stderr, "fuse4x: failed to stat() on mountpoint %s - %s\n", opts->fuse_args.mntpath, strerror(errno));
+		return false;
 	}
 
-	if (mo.ishelp) {
-		res = 0;
-		goto out;
+	struct statfs statfsb;
+	if (statfs(opts->fuse_args.mntpath, &statfsb) < 0) {
+	fprintf(stderr, "fuse4x: failed to statfs() on mountpoint %s - %s\n", opts->fuse_args.mntpath, strerror(errno));
+		return false;
+	}
+	if ((strcmp(statfsb.f_fstypename, FUSE_FSTYPENAME_PREFIX) == 0) && !opts->allow_recursion) {
+		fprintf(stderr, "fuse4x: mount point %s is itself on a fuse4x volume\n", opts->fuse_args.mntpath);
+		return false;
 	}
 
-	res = fuse_mount_core(mountpoint, mo.kernel_opts);
+	return true;
+}
 
-out:
-	free(mo.kernel_opts);
+int fuse_kern_mount(const char *mountpoint, struct fuse_args *args)
+{
+	struct mount_options opts;
 
-	return res;
+	memset(&opts, 0, sizeof(opts));
+
+	opts.fuse_args.blocksize = FUSE_DEFAULT_BLOCKSIZE;
+	opts.fuse_args.daemon_timeout = FUSE_DEFAULT_DAEMON_TIMEOUT;
+	opts.fuse_args.init_timeout = FUSE_DEFAULT_INIT_TIMEOUT;
+	opts.fuse_args.iosize = FUSE_DEFAULT_IOSIZE;
+
+
+	if (args && fuse_opt_parse(args, &opts, fuse_mount_opts, fuse_mount_opt_proc) == -1) {
+		return -1;
+	}
+
+	if (!check_mountpoint(mountpoint, &opts)) {
+		return -1;
+	}
+
+	if (!check_kext_version(opts.quiet)) {
+		return -1;
+	}
+
+	if ((opts.fuse_args.altflags & FUSE_MOPT_ALLOW_OTHER) &&
+		(opts.fuse_args.altflags & FUSE_MOPT_ALLOW_ROOT)) {
+
+		fprintf(stderr, "fuse4x: allow_other and allow_root are mutually exclusive\n");
+		return -1;
+	}
+
+	if ((opts.fuse_args.altflags & FUSE_MOPT_NEGATIVE_VNCACHE) &&
+		(opts.fuse_args.altflags & FUSE_MOPT_NO_VNCACHE)) {
+		fprintf(stderr, "fuse4x: 'negative_vncache' can't be used with 'novncache'\n");
+		return -1;
+	}
+
+	// 'nosyncwrites' must not appear with either 'noubc' or 'noreadahead'.
+	if ((opts.fuse_args.altflags & FUSE_MOPT_NO_SYNCWRITES) &&
+		(opts.fuse_args.altflags & (FUSE_MOPT_NO_UBC | FUSE_MOPT_NO_READAHEAD))) {
+		fprintf(stderr, "fuse4x: disabling local caching can't be used with 'nosyncwrites'\n");
+		return -1;
+	}
+
+	// 'nosynconclose' only allowed if 'nosyncwrites' is also there.
+	if ((opts.fuse_args.altflags & FUSE_MOPT_DEFAULT_PERMISSIONS) &&
+		(opts.fuse_args.altflags & FUSE_MOPT_DEFER_PERMISSIONS)) {
+		fprintf(stderr, "fuse4x: 'default_permissions' can't be used with 'defer_permissions'\n");
+		return -1;
+	}
+
+	if ((opts.fuse_args.altflags & FUSE_MOPT_AUTO_XATTR) &&
+		(opts.fuse_args.altflags & FUSE_MOPT_NATIVE_XATTR)) {
+		fprintf(stderr, "fuse4x: 'auto_xattr' can't be used with 'native_xattr'\n");
+		return -1;
+	}
+
+	if (opts.fuse_args.fsid & ~FUSE_MINOR_MASK) {
+		fprintf(stderr, "fuse4x: invalid 'fsid'\n");
+		return -1;
+	}
+
+	if (opts.fuse_args.daemon_timeout < FUSE_MIN_DAEMON_TIMEOUT)
+		opts.fuse_args.daemon_timeout = FUSE_MIN_DAEMON_TIMEOUT;
+
+	if (opts.fuse_args.daemon_timeout > FUSE_MAX_DAEMON_TIMEOUT)
+		opts.fuse_args.daemon_timeout = FUSE_MAX_DAEMON_TIMEOUT;
+
+	if (opts.fuse_args.init_timeout < FUSE_MIN_INIT_TIMEOUT)
+		opts.fuse_args.init_timeout = FUSE_MIN_INIT_TIMEOUT;
+
+	if (opts.fuse_args.init_timeout > FUSE_MAX_INIT_TIMEOUT)
+		opts.fuse_args.init_timeout = FUSE_MAX_INIT_TIMEOUT;
+
+
+	int device_no = -1;
+	char devpath[MAXPATHLEN];
+	int fd;
+
+	unsigned int i = 0;
+	for (; i < FUSE4X_NDEVICES; i++) {
+		snprintf(devpath, MAXPATHLEN - 1, _PATH_DEV FUSE4X_DEVICE_BASENAME "%d", i);
+		fd = open(devpath, O_RDWR);
+		if (fd >= 0) {
+			device_no = i;
+
+			struct stat sb;
+			if (fstat(fd, &sb) < 0) {
+				perror("fuse4x fstat:");
+				return -1;
+			}
+			opts.fuse_args.rdev = sb.st_rdev;
+
+			break;
+		}
+	}
+	if (device_no == -1) {
+		fprintf(stderr, "fuse4x: failed to open device file\n");
+		return -1;
+	}
+
+	if (!*opts.fuse_args.fsname)
+		snprintf(opts.fuse_args.fsname, MAXPATHLEN, "%s@fuse%d", getprogname(), device_no);
+
+	if (!*opts.fuse_args.volname)
+		snprintf(opts.fuse_args.volname, MAXPATHLEN, "fuse4x volume %d (%s)", device_no, getprogname());
+
+	int result = mount(FUSE4X_FS_TYPE, opts.fuse_args.mntpath, opts.standard_args, &opts.fuse_args);
+
+	char const *udata_keys[]   = { kFUSEMountPathKey };
+	char const *udata_values[] = { opts.fuse_args.mntpath };
+
+	if (result < 0) {
+		fprintf(stderr, "fuse4x failed to mount %s to %s : %s\n", devpath, opts.fuse_args.mntpath, strerror(errno));
+		if (!opts.quiet) {
+			CFUserNotificationDisplayNotice(
+				(CFTimeInterval)0,
+				kCFUserNotificationCautionAlertLevel,
+				NULL,
+				NULL,
+				NULL,
+				CFSTR("Fuse4x failed to mount"),
+				CFSTR("The fuse4x failed to mount path."), // TODO Add mountpath
+				CFSTR("OK")
+			);
+		}
+		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_FAILEDTOMOUNT, udata_keys, udata_values, 1);
+		return -1;
+	} else {
+		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_MOUNTED, udata_keys, udata_values, 1);
+	}
+
+	return fd;
 }

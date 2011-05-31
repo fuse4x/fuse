@@ -15,10 +15,15 @@ extern "C" {
 #include <fuse_param.h>
 #include <fuse_version.h>
 
+/* User data keys. */
+
+#define kFUSEDevicePathKey "kFUSEDevicePath"
+#define kFUSEMountPathKey  "kFUSEMountPath"
+
 
 /* Notifications */
 
-#define LIBFUSE_BUNDLE_IDENTIFIER "com.google.filesystems.libfuse"
+#define LIBFUSE_BUNDLE_IDENTIFIER "org.fuse4x.filesystems.libfuse"
 
 #define LIBFUSE_UNOTIFICATIONS_OBJECT                 \
     LIBFUSE_BUNDLE_IDENTIFIER ".unotifications"
@@ -29,11 +34,18 @@ extern "C" {
 #define LIBFUSE_UNOTIFICATIONS_NOTIFY_OSISTOOOLD      \
     LIBFUSE_BUNDLE_IDENTIFIER ".osistooold"
 
-#define LIBFUSE_UNOTIFICATIONS_NOTIFY_RUNTIMEVERSIONMISMATCH \
-    LIBFUSE_BUNDLE_IDENTIFIER ".runtimeversionmismatch"
-
 #define LIBFUSE_UNOTIFICATIONS_NOTIFY_VERSIONMISMATCH \
     LIBFUSE_BUNDLE_IDENTIFIER ".versionmismatch"
+
+#define LIBFUSE_UNOTIFICATIONS_NOTIFY_INVALID_KEXT \
+    LIBFUSE_BUNDLE_IDENTIFIER ".invalidkext"
+
+#define LIBFUSE_UNOTIFICATIONS_NOTIFY_FAILEDTOMOUNT \
+    LIBFUSE_BUNDLE_IDENTIFIER ".failedtomount"
+
+#define LIBFUSE_UNOTIFICATIONS_NOTIFY_MOUNTED \
+    LIBFUSE_BUNDLE_IDENTIFIER ".mounted"
+
 
 #ifdef __cplusplus
 }
