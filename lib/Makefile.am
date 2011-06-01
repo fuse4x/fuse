@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -DFUSERMOUNT_DIR=\"$(bindir)\" \
- -D_POSIX_C_SOURCE=200112L -D__DARWIN_64_BIT_INO_T=1  -D_FILE_OFFSET_BITS=64 \
+ -D_POSIX_C_SOURCE=200112L -D__DARWIN_64_BIT_INO_T=1 -D_FILE_OFFSET_BITS=64 \
  -D_REENTRANT -DFUSE_USE_VERSION=26 $(AM_CPPFLAGS_DARWIN)
 
 lib_LTLIBRARIES = libfuse.la

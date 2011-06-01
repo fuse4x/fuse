@@ -1,0 +1,339 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		DE31150B1395608000AB9DA8 /* cuse_lowlevel.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115001395608000AB9DA8 /* cuse_lowlevel.h */; };
+		DE31150C1395608000AB9DA8 /* fuse_common_compat.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115011395608000AB9DA8 /* fuse_common_compat.h */; };
+		DE31150D1395608000AB9DA8 /* fuse_common.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115021395608000AB9DA8 /* fuse_common.h */; };
+		DE31150E1395608000AB9DA8 /* fuse_compat.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115031395608000AB9DA8 /* fuse_compat.h */; };
+		DE31150F1395608000AB9DA8 /* fuse_darwin.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115041395608000AB9DA8 /* fuse_darwin.h */; };
+		DE3115101395608000AB9DA8 /* fuse_kernel.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115051395608000AB9DA8 /* fuse_kernel.h */; };
+		DE3115111395608000AB9DA8 /* fuse_lowlevel_compat.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115061395608000AB9DA8 /* fuse_lowlevel_compat.h */; };
+		DE3115121395608000AB9DA8 /* fuse_lowlevel.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115071395608000AB9DA8 /* fuse_lowlevel.h */; };
+		DE3115131395608000AB9DA8 /* fuse_opt.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115081395608000AB9DA8 /* fuse_opt.h */; };
+		DE3115141395608000AB9DA8 /* fuse.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115091395608000AB9DA8 /* fuse.h */; };
+		DE4FEE36139560CB00833822 /* ulockmgr.h in Headers */ = {isa = PBXBuildFile; fileRef = DE4FEE35139560CB00833822 /* ulockmgr.h */; };
+		DE4FEE421395610300833822 /* cuse_lowlevel.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE371395610300833822 /* cuse_lowlevel.c */; };
+		DE4FEE431395610300833822 /* fuse_i.h in Headers */ = {isa = PBXBuildFile; fileRef = DE4FEE381395610300833822 /* fuse_i.h */; };
+		DE4FEE441395610300833822 /* fuse_kern_chan.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE391395610300833822 /* fuse_kern_chan.c */; };
+		DE4FEE451395610300833822 /* fuse_loop_mt.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE3A1395610300833822 /* fuse_loop_mt.c */; };
+		DE4FEE461395610300833822 /* fuse_loop.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE3B1395610300833822 /* fuse_loop.c */; };
+		DE4FEE471395610300833822 /* fuse_lowlevel.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE3C1395610300833822 /* fuse_lowlevel.c */; };
+		DE4FEE481395610300833822 /* fuse_misc.h in Headers */ = {isa = PBXBuildFile; fileRef = DE4FEE3D1395610300833822 /* fuse_misc.h */; };
+		DE4FEE491395610300833822 /* fuse_mt.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE3E1395610300833822 /* fuse_mt.c */; };
+		DE4FEE4A1395610300833822 /* fuse_opt.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE3F1395610300833822 /* fuse_opt.c */; };
+		DE4FEE4B1395610300833822 /* fuse_session.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE401395610300833822 /* fuse_session.c */; };
+		DE4FEE4C1395610300833822 /* fuse_signals.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE411395610300833822 /* fuse_signals.c */; };
+		DE4FEE501395611D00833822 /* fuse.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE4E1395611D00833822 /* fuse.c */; };
+		DE4FEE511395611D00833822 /* helper.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE4F1395611D00833822 /* helper.c */; };
+		DE4FEE571395612A00833822 /* mount_darwin.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE521395612A00833822 /* mount_darwin.c */; };
+		DE4FEE5B1395612A00833822 /* ulockmgr.c in Sources */ = {isa = PBXBuildFile; fileRef = DE4FEE561395612A00833822 /* ulockmgr.c */; };
+		DE4FEE5D1395631200833822 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = DE4FEE5C1395631200833822 /* config.h */; };
+		DE4FEE611395635300833822 /* fuse_mount.h in Headers */ = {isa = PBXBuildFile; fileRef = DE4FEE5E1395635300833822 /* fuse_mount.h */; };
+		DE4FEE621395635300833822 /* fuse_param.h in Headers */ = {isa = PBXBuildFile; fileRef = DE4FEE5F1395635300833822 /* fuse_param.h */; };
+		DE4FEE631395635300833822 /* fuse_version.h in Headers */ = {isa = PBXBuildFile; fileRef = DE4FEE601395635300833822 /* fuse_version.h */; };
+		DE4FEE671395644A00833822 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE4FEE661395644A00833822 /* CoreFoundation.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		DE3115001395608000AB9DA8 /* cuse_lowlevel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cuse_lowlevel.h; path = include/cuse_lowlevel.h; sourceTree = "<group>"; };
+		DE3115011395608000AB9DA8 /* fuse_common_compat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_common_compat.h; path = include/fuse_common_compat.h; sourceTree = "<group>"; };
+		DE3115021395608000AB9DA8 /* fuse_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_common.h; path = include/fuse_common.h; sourceTree = "<group>"; };
+		DE3115031395608000AB9DA8 /* fuse_compat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_compat.h; path = include/fuse_compat.h; sourceTree = "<group>"; };
+		DE3115041395608000AB9DA8 /* fuse_darwin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_darwin.h; path = include/fuse_darwin.h; sourceTree = "<group>"; };
+		DE3115051395608000AB9DA8 /* fuse_kernel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_kernel.h; path = include/fuse_kernel.h; sourceTree = "<group>"; };
+		DE3115061395608000AB9DA8 /* fuse_lowlevel_compat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_lowlevel_compat.h; path = include/fuse_lowlevel_compat.h; sourceTree = "<group>"; };
+		DE3115071395608000AB9DA8 /* fuse_lowlevel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_lowlevel.h; path = include/fuse_lowlevel.h; sourceTree = "<group>"; };
+		DE3115081395608000AB9DA8 /* fuse_opt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_opt.h; path = include/fuse_opt.h; sourceTree = "<group>"; };
+		DE3115091395608000AB9DA8 /* fuse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse.h; path = include/fuse.h; sourceTree = "<group>"; };
+		DE4FEE35139560CB00833822 /* ulockmgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ulockmgr.h; path = include/ulockmgr.h; sourceTree = "<group>"; };
+		DE4FEE371395610300833822 /* cuse_lowlevel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = cuse_lowlevel.c; path = lib/cuse_lowlevel.c; sourceTree = "<group>"; };
+		DE4FEE381395610300833822 /* fuse_i.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_i.h; path = lib/fuse_i.h; sourceTree = "<group>"; };
+		DE4FEE391395610300833822 /* fuse_kern_chan.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fuse_kern_chan.c; path = lib/fuse_kern_chan.c; sourceTree = "<group>"; };
+		DE4FEE3A1395610300833822 /* fuse_loop_mt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fuse_loop_mt.c; path = lib/fuse_loop_mt.c; sourceTree = "<group>"; };
+		DE4FEE3B1395610300833822 /* fuse_loop.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fuse_loop.c; path = lib/fuse_loop.c; sourceTree = "<group>"; };
+		DE4FEE3C1395610300833822 /* fuse_lowlevel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fuse_lowlevel.c; path = lib/fuse_lowlevel.c; sourceTree = "<group>"; };
+		DE4FEE3D1395610300833822 /* fuse_misc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_misc.h; path = lib/fuse_misc.h; sourceTree = "<group>"; };
+		DE4FEE3E1395610300833822 /* fuse_mt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fuse_mt.c; path = lib/fuse_mt.c; sourceTree = "<group>"; };
+		DE4FEE3F1395610300833822 /* fuse_opt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fuse_opt.c; path = lib/fuse_opt.c; sourceTree = "<group>"; };
+		DE4FEE401395610300833822 /* fuse_session.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fuse_session.c; path = lib/fuse_session.c; sourceTree = "<group>"; };
+		DE4FEE411395610300833822 /* fuse_signals.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fuse_signals.c; path = lib/fuse_signals.c; sourceTree = "<group>"; };
+		DE4FEE4E1395611D00833822 /* fuse.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fuse.c; path = lib/fuse.c; sourceTree = "<group>"; };
+		DE4FEE4F1395611D00833822 /* helper.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = helper.c; path = lib/helper.c; sourceTree = "<group>"; };
+		DE4FEE521395612A00833822 /* mount_darwin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mount_darwin.c; path = lib/mount_darwin.c; sourceTree = "<group>"; };
+		DE4FEE561395612A00833822 /* ulockmgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ulockmgr.c; path = lib/ulockmgr.c; sourceTree = "<group>"; };
+		DE4FEE5C1395631200833822 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = config.h; path = include/config.h; sourceTree = "<group>"; };
+		DE4FEE5E1395635300833822 /* fuse_mount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_mount.h; path = ../kext/common/fuse_mount.h; sourceTree = "<group>"; };
+		DE4FEE5F1395635300833822 /* fuse_param.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_param.h; path = ../kext/common/fuse_param.h; sourceTree = "<group>"; };
+		DE4FEE601395635300833822 /* fuse_version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_version.h; path = ../kext/common/fuse_version.h; sourceTree = "<group>"; };
+		DE4FEE661395644A00833822 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		DE5C7E461395602800E59B31 /* libfuse.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libfuse.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		DE5C7E431395602800E59B31 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DE4FEE671395644A00833822 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		DE4FEE34139560B900833822 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				DE4FEE5E1395635300833822 /* fuse_mount.h */,
+				DE4FEE5F1395635300833822 /* fuse_param.h */,
+				DE4FEE601395635300833822 /* fuse_version.h */,
+				DE4FEE5C1395631200833822 /* config.h */,
+				DE4FEE35139560CB00833822 /* ulockmgr.h */,
+				DE3115001395608000AB9DA8 /* cuse_lowlevel.h */,
+				DE3115011395608000AB9DA8 /* fuse_common_compat.h */,
+				DE3115021395608000AB9DA8 /* fuse_common.h */,
+				DE3115031395608000AB9DA8 /* fuse_compat.h */,
+				DE3115041395608000AB9DA8 /* fuse_darwin.h */,
+				DE3115051395608000AB9DA8 /* fuse_kernel.h */,
+				DE3115061395608000AB9DA8 /* fuse_lowlevel_compat.h */,
+				DE3115071395608000AB9DA8 /* fuse_lowlevel.h */,
+				DE3115081395608000AB9DA8 /* fuse_opt.h */,
+				DE3115091395608000AB9DA8 /* fuse.h */,
+			);
+			name = include;
+			sourceTree = "<group>";
+		};
+		DE4FEE4D1395610C00833822 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				DE4FEE521395612A00833822 /* mount_darwin.c */,
+				DE4FEE561395612A00833822 /* ulockmgr.c */,
+				DE4FEE4E1395611D00833822 /* fuse.c */,
+				DE4FEE4F1395611D00833822 /* helper.c */,
+				DE4FEE371395610300833822 /* cuse_lowlevel.c */,
+				DE4FEE381395610300833822 /* fuse_i.h */,
+				DE4FEE391395610300833822 /* fuse_kern_chan.c */,
+				DE4FEE3A1395610300833822 /* fuse_loop_mt.c */,
+				DE4FEE3B1395610300833822 /* fuse_loop.c */,
+				DE4FEE3C1395610300833822 /* fuse_lowlevel.c */,
+				DE4FEE3D1395610300833822 /* fuse_misc.h */,
+				DE4FEE3E1395610300833822 /* fuse_mt.c */,
+				DE4FEE3F1395610300833822 /* fuse_opt.c */,
+				DE4FEE401395610300833822 /* fuse_session.c */,
+				DE4FEE411395610300833822 /* fuse_signals.c */,
+			);
+			name = lib;
+			sourceTree = "<group>";
+		};
+		DE5C7E3B1395602800E59B31 = {
+			isa = PBXGroup;
+			children = (
+				DE4FEE661395644A00833822 /* CoreFoundation.framework */,
+				DE4FEE4D1395610C00833822 /* lib */,
+				DE4FEE34139560B900833822 /* include */,
+				DE5C7E471395602800E59B31 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DE5C7E471395602800E59B31 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DE5C7E461395602800E59B31 /* libfuse.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		DE5C7E441395602800E59B31 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DE31150B1395608000AB9DA8 /* cuse_lowlevel.h in Headers */,
+				DE31150C1395608000AB9DA8 /* fuse_common_compat.h in Headers */,
+				DE31150D1395608000AB9DA8 /* fuse_common.h in Headers */,
+				DE31150E1395608000AB9DA8 /* fuse_compat.h in Headers */,
+				DE31150F1395608000AB9DA8 /* fuse_darwin.h in Headers */,
+				DE3115101395608000AB9DA8 /* fuse_kernel.h in Headers */,
+				DE3115111395608000AB9DA8 /* fuse_lowlevel_compat.h in Headers */,
+				DE3115121395608000AB9DA8 /* fuse_lowlevel.h in Headers */,
+				DE3115131395608000AB9DA8 /* fuse_opt.h in Headers */,
+				DE3115141395608000AB9DA8 /* fuse.h in Headers */,
+				DE4FEE36139560CB00833822 /* ulockmgr.h in Headers */,
+				DE4FEE431395610300833822 /* fuse_i.h in Headers */,
+				DE4FEE481395610300833822 /* fuse_misc.h in Headers */,
+				DE4FEE5D1395631200833822 /* config.h in Headers */,
+				DE4FEE611395635300833822 /* fuse_mount.h in Headers */,
+				DE4FEE621395635300833822 /* fuse_param.h in Headers */,
+				DE4FEE631395635300833822 /* fuse_version.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		DE5C7E451395602800E59B31 /* fuse */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DE5C7E4A1395602800E59B31 /* Build configuration list for PBXNativeTarget "fuse" */;
+			buildPhases = (
+				DE5C7E421395602800E59B31 /* Sources */,
+				DE5C7E431395602800E59B31 /* Frameworks */,
+				DE5C7E441395602800E59B31 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = fuse;
+			productName = fuse;
+			productReference = DE5C7E461395602800E59B31 /* libfuse.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DE5C7E3D1395602800E59B31 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = DE5C7E401395602800E59B31 /* Build configuration list for PBXProject "fuse" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = DE5C7E3B1395602800E59B31;
+			productRefGroup = DE5C7E471395602800E59B31 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DE5C7E451395602800E59B31 /* fuse */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DE5C7E421395602800E59B31 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DE4FEE421395610300833822 /* cuse_lowlevel.c in Sources */,
+				DE4FEE441395610300833822 /* fuse_kern_chan.c in Sources */,
+				DE4FEE451395610300833822 /* fuse_loop_mt.c in Sources */,
+				DE4FEE461395610300833822 /* fuse_loop.c in Sources */,
+				DE4FEE471395610300833822 /* fuse_lowlevel.c in Sources */,
+				DE4FEE491395610300833822 /* fuse_mt.c in Sources */,
+				DE4FEE4A1395610300833822 /* fuse_opt.c in Sources */,
+				DE4FEE4B1395610300833822 /* fuse_session.c in Sources */,
+				DE4FEE4C1395610300833822 /* fuse_signals.c in Sources */,
+				DE4FEE501395611D00833822 /* fuse.c in Sources */,
+				DE4FEE511395611D00833822 /* helper.c in Sources */,
+				DE4FEE571395612A00833822 /* mount_darwin.c in Sources */,
+				DE4FEE5B1395612A00833822 /* ulockmgr.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		DE5C7E481395602800E59B31 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		DE5C7E491395602800E59B31 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		DE5C7E4B1395602800E59B31 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				EXECUTABLE_PREFIX = lib;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				OTHER_CFLAGS = (
+					"-D_POSIX_C_SOURCE=200112L",
+					"-D_FILE_OFFSET_BITS=64",
+					"-D__DARWIN_64_BIT_INO_T=1",
+					"-D_REENTRANT",
+					"-DFUSE_USE_VERSION=26",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		DE5C7E4C1395602800E59B31 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				OTHER_CFLAGS = (
+					"-D_POSIX_C_SOURCE=200112L",
+					"-D_FILE_OFFSET_BITS=64",
+					"-D__DARWIN_64_BIT_INO_T=1",
+					"-D_REENTRANT",
+					"-DFUSE_USE_VERSION=26",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		DE5C7E401395602800E59B31 /* Build configuration list for PBXProject "fuse" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE5C7E481395602800E59B31 /* Debug */,
+				DE5C7E491395602800E59B31 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DE5C7E4A1395602800E59B31 /* Build configuration list for PBXNativeTarget "fuse" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE5C7E4B1395602800E59B31 /* Debug */,
+				DE5C7E4C1395602800E59B31 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DE5C7E3D1395602800E59B31 /* Project object */;
+}
