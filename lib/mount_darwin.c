@@ -88,51 +88,6 @@ fuse_running_under_rosetta(void)
 }
 
 static int
-loadkmod(void)
-{
-	int result = -1;
-	pid_t pid, terminated_pid;
-	int status;
-	long major;
-
-	major = fuse_os_version_major_np();
-
-	if (major < 9) { /* not Mac OS X 10.5+ */
-		return EINVAL;
-	}
-
-	pid = fork();
-
-	if (pid == 0) {
-		result = execl(FUSE4X_LOAD_PROG, FUSE4X_LOAD_PROG, NULL);
-		perror("exec " FUSE4X_LOAD_PROG);
-
-		/* exec failed */
-		goto Return;
-	}
-
-	require_action(pid != -1, Return, result = errno);
-
-	while ((terminated_pid = waitpid(pid, &status, 0)) < 0) {
-		/* retry if EINTR, else break out with error */
-		if (errno != EINTR) {
-			break;
-		}
-	}
-
-	if ((terminated_pid == pid) && (WIFEXITED(status))) {
-		result = WEXITSTATUS(status);
-	} else {
-		result = -1;
-	}
-
-Return:
-	check_noerr_string(result, strerror(errno));
-
-	return result;
-}
-
-static int
 post_notification(char	 *name,
 				  char	 *udata_keys[],
 				  char	 *udata_values[],
@@ -474,61 +429,21 @@ fuse_mount_core(const char *mountpoint, const char *opts)
 		return -1;
 	}
 
-	result = loadkmod();
-	if (result) {
-		CFOptionFlags responseFlags;
-		if (result == EINVAL) {
-			if (!quiet_mode) {
-				CFUserNotificationDisplayNotice(
-					(CFTimeInterval)0,
-					kCFUserNotificationCautionAlertLevel,
-					(CFURLRef)0,
-					(CFURLRef)0,
-					(CFURLRef)0,
-					CFSTR("Operating System Too Old"),
-					CFSTR("The installed fuse4x version is too new for the operating system. Please downgrade your fuse4x installation to one that is compatible with the currently running operating system."),
-					CFSTR("OK")
-				);
-			}
-			post_notification(
-				LIBFUSE_UNOTIFICATIONS_NOTIFY_OSISTOOOLD, NULL, NULL, 0);
-		} else if (result == EBUSY) {
-			if (!quiet_mode) {
-				CFUserNotificationDisplayNotice(
-					(CFTimeInterval)0,
-					kCFUserNotificationCautionAlertLevel,
-					(CFURLRef)0,
-					(CFURLRef)0,
-					(CFURLRef)0,
-					CFSTR("fuse4x Version Mismatch"),
-					CFSTR("fuse4x has been updated but an incompatible or old version of the fuse4x kernel extension is already loaded. It failed to unload, possibly because a fuse4x volume is currently mounted.\n\nPlease eject all fuse4x volumes and try again, or simply restart the system for changes to take effect."),
-					CFSTR("OK")
-				);
-			}
-			post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_VERSIONMISMATCH,
-							  NULL, NULL, 0);
-		}
-		fprintf(stderr, "the fuse4x file system is not available (%d)\n",
-				result);
-		return -1;
-	} else {
+	/* Module loaded, but now need to check for user<->kernel match. */
 
-		/* Module loaded, but now need to check for user<->kernel match. */
+	char   version[MAXHOSTNAMELEN + 1] = { 0 };
+	size_t version_len = MAXHOSTNAMELEN;
+	size_t version_len_desired = 0;
 
-		char   version[MAXHOSTNAMELEN + 1] = { 0 };
-		size_t version_len = MAXHOSTNAMELEN;
-		size_t version_len_desired = 0;
+	result = sysctlbyname(SYSCTL_FUSE4X_VERSION_NUMBER, version,
+						  &version_len, NULL, (size_t)0);
+	if (result == 0) {
+		/* sysctlbyname() includes the trailing '\0' in version_len */
+		version_len_desired = strlen(FUSE4X_VERSION) + 1;
 
-		result = sysctlbyname(SYSCTL_FUSE4X_VERSION_NUMBER, version,
-							  &version_len, NULL, (size_t)0);
-		if (result == 0) {
-			/* sysctlbyname() includes the trailing '\0' in version_len */
-			version_len_desired = strlen(FUSE4X_VERSION) + 1;
-
-			if ((version_len != version_len_desired) ||
-				strncmp(FUSE4X_VERSION, version, version_len)) {
-				result = -1;
-			}
+		if ((version_len != version_len_desired) ||
+			strncmp(FUSE4X_VERSION, version, version_len)) {
+			result = -1;
 		}
 	}
 
