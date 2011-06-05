@@ -12,7 +12,6 @@
 extern "C" {
 #endif
 
-#include <fuse_param.h>
 #include <fuse_version.h>
 
 /* User data keys. */

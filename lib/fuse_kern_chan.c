@@ -17,6 +17,7 @@
 
 #ifdef __APPLE__
 #include "fuse_darwin.h"
+#include <fuse_param.h>
 #endif
 
 static int fuse_kern_chan_receive(struct fuse_chan **chp, char *buf,
