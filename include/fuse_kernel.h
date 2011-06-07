@@ -56,6 +56,23 @@
  *  - add umask flag to input argument of open, mknod and mkdir
  *  - add notification messages for invalidation of inodes and
  *    directory entries
+ *
+ * 7.13
+ *  - make max number of background requests and congestion threshold
+ *    tunables
+ *
+ * 7.14
+ *  - add splice support to fuse device
+ *
+ * 7.15
+ *  - add store notify
+ *  - add retrieve notify
+ *
+ * 7.16
+ *  - add BATCH_FORGET request
+ *  - FUSE_IOCTL_UNRESTRICTED shall now return with array of 'struct
+ *    fuse_ioctl_iovec' instead of ambiguous 'struct iovec'
+ *  - add FUSE_IOCTL_32BIT flag
  */
 
 #ifndef _LINUX_FUSE_H
@@ -66,6 +83,7 @@
 #define __s64 int64_t
 #define __u32 uint32_t
 #define __s32 int32_t
+#define __u16 uint16_t
 
 /*
  * Version negotiation:
@@ -91,7 +109,7 @@
 #define FUSE_KERNEL_VERSION 7
 
 /** Minor version number of this interface */
-#define FUSE_KERNEL_MINOR_VERSION 12
+#define FUSE_KERNEL_MINOR_VERSION 16
 
 /** The node ID of the root inode */
 #define FUSE_ROOT_ID 1
@@ -123,8 +141,8 @@ struct fuse_attr {
 #ifdef __APPLE__
 	__u32	flags; /* file flags; see chflags(2) */
 #endif /* __APPLE__ */
-    __u32	blksize;
-    __u32	padding;
+	__u32	blksize;
+	__u32	padding;
 };
 
 struct fuse_kstatfs {
@@ -243,12 +261,14 @@ struct fuse_file_lock {
  * FUSE_IOCTL_COMPAT: 32bit compat ioctl on 64bit machine
  * FUSE_IOCTL_UNRESTRICTED: not restricted to well-formed ioctls, retry allowed
  * FUSE_IOCTL_RETRY: retry with new iovecs
+ * FUSE_IOCTL_32BIT: 32bit ioctl
  *
  * FUSE_IOCTL_MAX_IOV: maximum of in_iovecs + out_iovecs
  */
 #define FUSE_IOCTL_COMPAT	(1 << 0)
 #define FUSE_IOCTL_UNRESTRICTED	(1 << 1)
 #define FUSE_IOCTL_RETRY	(1 << 2)
+#define FUSE_IOCTL_32BIT	(1 << 3)
 
 #define FUSE_IOCTL_MAX_IOV	256
 
@@ -298,6 +318,8 @@ enum fuse_opcode {
 	FUSE_DESTROY       = 38,
 	FUSE_IOCTL         = 39,
 	FUSE_POLL          = 40,
+	FUSE_NOTIFY_REPLY  = 41,
+	FUSE_BATCH_FORGET  = 42,
 #ifdef __APPLE__
 	FUSE_SETVOLNAME    = 61,
 	FUSE_GETXTIMES     = 62,
@@ -312,17 +334,15 @@ enum fuse_notify_code {
 	FUSE_NOTIFY_POLL   = 1,
 	FUSE_NOTIFY_INVAL_INODE = 2,
 	FUSE_NOTIFY_INVAL_ENTRY = 3,
+	FUSE_NOTIFY_STORE = 4,
+	FUSE_NOTIFY_RETRIEVE = 5,
 	FUSE_NOTIFY_CODE_MAX,
 };
 
 /* The read buffer is required to be at least 8k, but may be much larger */
 #define FUSE_MIN_READ_BUFFER 8192
 
-#ifdef __APPLE__
-#define FUSE_COMPAT_ENTRY_OUT_SIZE 136
-#else
 #define FUSE_COMPAT_ENTRY_OUT_SIZE 120
-#endif
 
 struct fuse_entry_out {
 	__u64	nodeid;		/* Inode ID */
@@ -339,17 +359,23 @@ struct fuse_forget_in {
 	__u64	nlookup;
 };
 
+struct fuse_forget_one {
+	__u64	nodeid;
+	__u64	nlookup;
+};
+
+struct fuse_batch_forget_in {
+	__u32	count;
+	__u32	dummy;
+};
+
 struct fuse_getattr_in {
 	__u32	getattr_flags;
 	__u32	dummy;
 	__u64	fh;
 };
 
-#ifdef __APPLE__
-#define FUSE_COMPAT_ATTR_OUT_SIZE 112
-#else
 #define FUSE_COMPAT_ATTR_OUT_SIZE 96
-#endif
 
 struct fuse_attr_out {
 	__u64	attr_valid;	/* Cache timeout for the attributes */
@@ -548,7 +574,8 @@ struct fuse_init_out {
 	__u32	minor;
 	__u32	max_readahead;
 	__u32	flags;
-	__u32	unused;
+	__u16   max_background;
+	__u16   congestion_threshold;
 	__u32	max_write;
 };
 
@@ -594,6 +621,11 @@ struct fuse_ioctl_in {
 	__u64	arg;
 	__u32	in_size;
 	__u32	out_size;
+};
+
+struct fuse_ioctl_iovec {
+	__u64	base;
+	__u64	len;
 };
 
 struct fuse_ioctl_out {
@@ -659,6 +691,31 @@ struct fuse_notify_inval_entry_out {
 	__u64	parent;
 	__u32	namelen;
 	__u32	padding;
+};
+
+struct fuse_notify_store_out {
+	__u64	nodeid;
+	__u64	offset;
+	__u32	size;
+	__u32	padding;
+};
+
+struct fuse_notify_retrieve_out {
+	__u64	notify_unique;
+	__u64	nodeid;
+	__u64	offset;
+	__u32	size;
+	__u32	padding;
+};
+
+/* Matches the size of fuse_write_in */
+struct fuse_notify_retrieve_in {
+	__u64	dummy1;
+	__u64	offset;
+	__u32	size;
+	__u32	dummy2;
+	__u64	dummy3;
+	__u64	dummy4;
 };
 
 #endif /* _LINUX_FUSE_H */
