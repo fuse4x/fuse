@@ -36,7 +36,7 @@ install-sh
 lib/.libs/
 lib/Makefile
 lib/Makefile.in
-lib/libfuse.la
+lib/libfuse4x.la
 libtool
 ltmain.sh
 missing

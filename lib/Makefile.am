@@ -1,10 +1,10 @@
 ## Process this file with automake to produce Makefile.in
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -DFUSERMOUNT_DIR=\"$(bindir)\" \
- -D_POSIX_C_SOURCE=200112L -D__DARWIN_64_BIT_INO_T=1 -D_FILE_OFFSET_BITS=64 \
+ -D_POSIX_C_SOURCE=200112L -D_FILE_OFFSET_BITS=64 \
  -D_REENTRANT -DFUSE_USE_VERSION=26 $(AM_CPPFLAGS_DARWIN)
 
-lib_LTLIBRARIES = libfuse.la
+lib_LTLIBRARIES = libfuse4x.la
 
 if !DARWIN
 lib_LTLIBRARIES += libulockmgr.la
@@ -31,7 +31,7 @@ else
 iconv_source =
 endif
 
-libfuse_la_SOURCES = 		\
+libfuse4x_la_SOURCES = 		\
 	fuse.c			\
 	fuse_i.h		\
 	fuse_kern_chan.c	\
@@ -51,14 +51,14 @@ libfuse_la_SOURCES = 		\
 	$(mount_source)
 
 if !DARWIN
-libfuse_la_LDFLAGS = @libfuse_libs@ -version-number 2:8:5 \
+libfuse4x_la_LDFLAGS = @libfuse_libs@ -version-number 2:8:5 \
 	-Wl,--version-script,$(srcdir)/fuse_versionscript
 
 libulockmgr_la_SOURCES = ulockmgr.c
 libulockmgr_la_LDFLAGS = -pthread -version-number 1:0:1
 
 else
-libfuse_la_LDFLAGS = -version-number 2:8:5
+libfuse4x_la_LDFLAGS = -version-number 2:8:5
 endif
 
 EXTRA_DIST = fuse_versionscript
