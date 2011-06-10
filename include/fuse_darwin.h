@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2006-2008 Google. All Rights Reserved.
- * Amit Singh <singh@>
+ * Copyright (C) 2006-2008 Google, 2011 fuse4x.org All Rights Reserved.
  */
 
 #ifdef __APPLE__

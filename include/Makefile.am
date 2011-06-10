@@ -3,7 +3,7 @@
 fuseincludedir=$(includedir)/fuse
 
 if DARWIN
-darwin_headers = fuse_darwin.h ../../kext/common/fuse_version.h
+darwin_headers = fuse_darwin.h fuse_version.h
 cuse_headers =
 ulockmgr_headers =
 else

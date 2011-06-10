@@ -1,5 +1,5 @@
 /*
- * Amit Singh <singh@>
+ * Copyright (C) fuse4x.org 2011
  *
  * Derived from mount_bsd.c from the fuse distribution.
  *
@@ -33,7 +33,7 @@
 #include "fuse_i.h"
 #include "fuse_opt.h"
 #include "fuse_darwin.h"
-#include <fuse_mount.h>
+#include "fuse_mount.h"
 
 struct mount_options {
 	struct fuse_mount_args fuse_args; // mount flags for fuse4x kext

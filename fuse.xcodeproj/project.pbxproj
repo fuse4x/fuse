@@ -76,9 +76,9 @@
 		DE4FEE521395612A00833822 /* mount_darwin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mount_darwin.c; path = lib/mount_darwin.c; sourceTree = "<group>"; };
 		DE4FEE561395612A00833822 /* ulockmgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ulockmgr.c; path = lib/ulockmgr.c; sourceTree = "<group>"; };
 		DE4FEE5C1395631200833822 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = config.h; path = include/config.h; sourceTree = "<group>"; };
-		DE4FEE5E1395635300833822 /* fuse_mount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_mount.h; path = ../kext/common/fuse_mount.h; sourceTree = "<group>"; };
-		DE4FEE5F1395635300833822 /* fuse_param.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_param.h; path = ../kext/common/fuse_param.h; sourceTree = "<group>"; };
-		DE4FEE601395635300833822 /* fuse_version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_version.h; path = ../kext/common/fuse_version.h; sourceTree = "<group>"; };
+		DE4FEE5E1395635300833822 /* fuse_mount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_mount.h; path = include/fuse_mount.h; sourceTree = "<group>"; };
+		DE4FEE5F1395635300833822 /* fuse_param.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_param.h; path = include/fuse_param.h; sourceTree = "<group>"; };
+		DE4FEE601395635300833822 /* fuse_version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_version.h; path = include/fuse_version.h; sourceTree = "<group>"; };
 		DE4FEE661395644A00833822 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		DE5C7E461395602800E59B31 /* libfuse.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libfuse.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
