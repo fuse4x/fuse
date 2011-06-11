@@ -51,9 +51,9 @@ fi
 if test "$arch" = linux -a "$enable_util" != "no"; then
 	subdirs2="$subdirs2 util";
 fi
-#if test "$enable_example" != "no"; then
-#	subdirs2="$subdirs2 example";
-#fi
+if test "$enable_example" != "no"; then
+	subdirs2="$subdirs2 example";
+fi
 if test "$enable_mtab" = "no"; then
 	AC_DEFINE(IGNORE_MTAB, 1, [Don't update /etc/mtab])
 fi
@@ -98,5 +98,5 @@ AM_CONDITIONAL(LINUX, test "$arch" = linux)
 AM_CONDITIONAL(BSD, test "$arch" = bsd)
 AM_CONDITIONAL(DARWIN, test "$arch" = darwin)
 
-AC_CONFIG_FILES([fuse.pc Makefile lib/Makefile util/Makefile include/Makefile])
+AC_CONFIG_FILES([fuse.pc Makefile lib/Makefile util/Makefile include/Makefile example/Makefile])
 AC_OUTPUT
