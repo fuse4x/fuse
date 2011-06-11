@@ -29,6 +29,7 @@
 #include <paths.h>
 
 #include <CoreFoundation/CoreFoundation.h>
+#include <IOKit/kext/KextManager.h>
 
 #include "fuse_i.h"
 #include "fuse_opt.h"
@@ -393,21 +394,32 @@ static bool check_kext_version(bool quiet_mode)
 	int result = sysctlbyname(SYSCTL_FUSE4X_VERSION_NUMBER, version, &version_len, NULL, (size_t)0);
 
 	if (result != 0) {
-		if (!quiet_mode) {
-			CFUserNotificationDisplayNotice(
-				(CFTimeInterval)0,
-				kCFUserNotificationCautionAlertLevel,
-				NULL,
-				NULL,
-				NULL,
-				CFSTR("Fuse4x kernel extension error"),
-				CFSTR("The fuse4x kernel extension is not loaded."),
-				CFSTR("OK")
-			);
+		// Let's try to load the kext first
+		// Snow Leopard allows to load a kext as a non-root user if 'OSBundleAllowUserLoad' key is set in
+		// kext's Info.plist.
+		// If this code be ever ported to 10.5 - we should create a script that runs 'kextload -b id'
+		// owned by root and user-bit set.
+		result = KextManagerLoadKextWithIdentifier(CFSTR(FUSE4X_BUNDLE_IDENTIFIER), NULL);
+
+		if (result != 0) {
+			if (!quiet_mode) {
+				CFUserNotificationDisplayNotice(
+					(CFTimeInterval)0,
+					kCFUserNotificationCautionAlertLevel,
+					NULL,
+					NULL,
+					NULL,
+					CFSTR("Fuse4x kernel extension error"),
+					CFSTR("The fuse4x kernel extension was not loaded."),
+					CFSTR("OK")
+				);
+			}
+			post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_INVALID_KEXT, NULL, NULL, 0);
+			fprintf(stderr, "fuse4x kernel extension was not loaded. Please check /var/log/system.log for more information.\n");
+			return false;
 		}
-		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_INVALID_KEXT, NULL, NULL, 0);
-		fprintf(stderr, "fuse4x kernel extension is not loaded. Please load it with 'sudo kextload " FUSE4X_KEXT "'.\n");
-		return false;
+
+		result = sysctlbyname(SYSCTL_FUSE4X_VERSION_NUMBER, version, &version_len, NULL, (size_t)0);
 	}
 
 	if (strncmp(FUSE4X_VERSION, version, version_len)) {
@@ -424,7 +436,7 @@ static bool check_kext_version(bool quiet_mode)
 			);
 		}
 		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_VERSIONMISMATCH, NULL, NULL, 0);
-		fprintf(stderr, "fuse4x client library version is incompatible with the kernel extension\n");
+		fprintf(stderr, "fuse4x client library version is incompatible with the kernel extension (kext='%s', library='%s').\n", version, FUSE4X_VERSION);
 		return false;
 	}
 

@@ -42,6 +42,7 @@
 		DE4FEE621395635300833822 /* fuse_param.h in Headers */ = {isa = PBXBuildFile; fileRef = DE4FEE5F1395635300833822 /* fuse_param.h */; };
 		DE4FEE631395635300833822 /* fuse_version.h in Headers */ = {isa = PBXBuildFile; fileRef = DE4FEE601395635300833822 /* fuse_version.h */; };
 		DE4FEE671395644A00833822 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE4FEE661395644A00833822 /* CoreFoundation.framework */; };
+		DEC6534D13A3A46000B3D737 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DEC6534C13A3A46000B3D737 /* IOKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -81,6 +82,7 @@
 		DE4FEE601395635300833822 /* fuse_version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_version.h; path = include/fuse_version.h; sourceTree = "<group>"; };
 		DE4FEE661395644A00833822 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		DE5C7E461395602800E59B31 /* libfuse.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libfuse.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		DEC6534C13A3A46000B3D737 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +90,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEC6534D13A3A46000B3D737 /* IOKit.framework in Frameworks */,
 				DE4FEE671395644A00833822 /* CoreFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -155,6 +158,7 @@
 		DE5C7E3B1395602800E59B31 = {
 			isa = PBXGroup;
 			children = (
+				DEC6534C13A3A46000B3D737 /* IOKit.framework */,
 				DE4FEE661395644A00833822 /* CoreFoundation.framework */,
 				DE4FEE4D1395610C00833822 /* lib */,
 				DE4FEE34139560B900833822 /* include */,
