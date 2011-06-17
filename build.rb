@@ -40,8 +40,11 @@ end
 system("make -s -j3") or abort
 
 cmd = 'sudo make install'
-if root_dir
-  cmd = cmd + ' DESTDIR=' + root_dir
-end
-
 system(cmd)
+
+if root_dir
+  # fuse is a special subproject. Other pieces (such as framework and sshfs) depend on it,
+  # or be precise depend on fuse installed to /usr/local/lib. So in case if we build distribution package
+  # we still install it to both places, to system and to root dir.
+  system(cmd + ' DESTDIR=' + root_dir)
+end
