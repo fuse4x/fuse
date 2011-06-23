@@ -37,6 +37,11 @@ unless File.exists?('Makefile') then
   system("./configure --disable-dependency-tracking --disable-static") or abort
 end
 
+if root_dir
+  # In case if we build the final distribution - clean project to avoid possible stale changes
+  system('make clean')
+end
+
 system("make -s -j3") or abort
 
 cmd = 'sudo make install'
