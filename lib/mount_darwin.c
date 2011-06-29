@@ -509,6 +509,11 @@ int fuse_kern_mount(const char *mountpoint, struct fuse_args *args)
 		return -1;
 	}
 
+	// MNT_LOCAL flag should be duplicated both as a standrad mount flag and a fuse4x flag
+	// See https://groups.google.com/d/topic/fuse4x/WuKrqpNvAgw/discussion
+	if (opts.standard_args & MNT_LOCAL)
+		opts.fuse_args.altflags |= FUSE_MOPT_LOCALVOL;
+
 	if ((opts.fuse_args.altflags & FUSE_MOPT_ALLOW_OTHER) &&
 		(opts.fuse_args.altflags & FUSE_MOPT_ALLOW_ROOT)) {
 
