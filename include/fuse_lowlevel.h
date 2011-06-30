@@ -1106,6 +1106,19 @@ int fuse_reply_lock(fuse_req_t req, struct flock *lock);
  */
 int fuse_reply_bmap(fuse_req_t req, uint64_t idx);
 
+#ifdef __APPLE__
+
+/**
+ * Reply with xtimes
+ *
+ * Possible requests:
+ *   getxtime
+ */
+int fuse_reply_xtimes(fuse_req_t req, const struct timespec *bkuptime,
+                const struct timespec *crtime);
+
+#endif
+
 /* ----------------------------------------------------------- *
  * Filling a buffer in readdir				       *
  * ----------------------------------------------------------- */

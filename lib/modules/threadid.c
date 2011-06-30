@@ -1,5 +1,5 @@
 /*
- * Per-thread override identity support for MacFUSE.
+ * Per-thread override identity support for Fuse4X.
  *
  * Amit Singh <singh@>
  *
@@ -594,7 +594,6 @@ threadid_opt_proc(void *data, const char *arg, int key,
 static struct fuse_fs *
 threadid_new(struct fuse_args *args, struct fuse_fs *next[])
 {
-    int ret;
     struct fuse_fs *fs;
     struct threadid *d;
 

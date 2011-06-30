@@ -767,7 +767,7 @@ static void do_rename(fuse_req_t req, fuse_ino_t nodeid, const void *inarg)
 
 #ifdef __APPLE__
 
-static void do_setvolname(fuse_req_t req, fuse_ino_t nodeid, const void *inarg)
+static void do_setvolname(fuse_req_t req, __unused fuse_ino_t nodeid, const void *inarg)
 {
 	const char *volname = (const char *)inarg;
 	if (req->f->op.setvolname)
@@ -776,7 +776,7 @@ static void do_setvolname(fuse_req_t req, fuse_ino_t nodeid, const void *inarg)
 		fuse_reply_err(req, ENOSYS);
 }
 
-static void do_exchange(fuse_req_t req, fuse_ino_t nodeid, const void *inarg)
+static void do_exchange(fuse_req_t req, __unused fuse_ino_t nodeid, const void *inarg)
 {
 	struct fuse_exchange_in *arg = (struct fuse_exchange_in *) inarg;
 	char *oldname = PARAM(arg);
@@ -1881,7 +1881,7 @@ out_free:
 /*
  * This is currently not implemented on other than Linux...
  */
-int fuse_req_getgroups(fuse_req_t req, int size, gid_t list[])
+int fuse_req_getgroups(__unused fuse_req_t req, __unused int size, __unused gid_t list[])
 {
 	return -ENOSYS;
 }

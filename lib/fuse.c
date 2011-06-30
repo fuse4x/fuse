@@ -1054,7 +1054,7 @@ static int fuse_compat_statfs(struct fuse_fs *fs, const char *path,
 
 #else /* !__FreeBSD__ && !__APPLE__ */
 
-static inline int fuse_compat_open(struct fuse_fs *fs, char *path,
+static inline int fuse_compat_open(struct fuse_fs *fs, const char *path,
 				   struct fuse_file_info *fi)
 {
 	return fs->op.open(path, fi);
@@ -2618,7 +2618,7 @@ static void fuse_lib_rename(fuse_req_t req, fuse_ino_t olddir,
 
 static int exchange_node(struct fuse *f, fuse_ino_t olddir, const char *oldname,
 		         fuse_ino_t newdir, const char *newname,
-                         unsigned long options)
+                         __unused unsigned long options)
 {
 	struct node *node;
 	struct node *newnode;
