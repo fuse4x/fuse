@@ -81,12 +81,6 @@ enum {
     FUSE_MOPT_SPARSE              = 1ULL << 29,
     FUSE_MOPT_QUIET               = 1ULL << 30,
     FUSE_MOPT_LOCALVOL            = 1ULL << 31,
-
-    // to be removed
-    FUSE_MOPT_ALLOW_RECURSION     = 1ULL << 32,
-    FUSE_MOPT_FSTYPENAME          = 1ULL << 33,
-    FUSE_MOPT_VOLNAME             = 1ULL << 34,
-    FUSE_MOPT_FSNAME              = 1ULL << 35
 };
 
 #define FUSE_MINOR_MASK                 0x00FFFFFFUL
