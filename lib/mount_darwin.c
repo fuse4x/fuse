@@ -29,7 +29,6 @@
 #include <paths.h>
 
 #include <CoreFoundation/CoreFoundation.h>
-#include <IOKit/kext/KextManager.h>
 
 #include "fuse_i.h"
 #include "fuse_opt.h"
@@ -391,12 +390,23 @@ static bool check_kext_version(bool quiet_mode)
 	int result = sysctlbyname(SYSCTL_FUSE4X_VERSION_NUMBER, version, &version_len, NULL, (size_t)0);
 
 	if (result != 0) {
-		// Let's try to load the kext first
-		// Snow Leopard allows to load a kext as a non-root user if 'OSBundleAllowUserLoad' key is set in
-		// kext's Info.plist.
-		// If this code be ever ported to 10.5 - we should create a script that runs 'kextload -b id'
-		// owned by root and user-bit set.
-		result = KextManagerLoadKextWithIdentifier(CFSTR(FUSE4X_BUNDLE_IDENTIFIER), NULL);
+		// Let's try to load the kext
+		pid_t pid = fork();
+		if (pid < 0) {
+			perror("fork");
+			result = -1;
+		} else if (pid == 0) {
+			if (execl(FUSE4X_LOAD_PROG, FUSE4X_LOAD_PROG, NULL) == -1) {
+				/* We can only get here if the exec failed */
+				perror("execl");
+				_exit(errno);
+			}
+		} else {
+			if (waitpid(pid, &result, 0) == -1) {
+				perror("waitpid");
+				result = -1;
+			}
+		}
 
 		if (result != 0) {
 			if (!quiet_mode) {
