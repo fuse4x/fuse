@@ -42,3 +42,7 @@ ltmain.sh
 missing
 util/Makefile
 util/Makefile.in
+example/.libs/
+example/hello
+example/hello_ll
+example/null
