@@ -63,7 +63,6 @@ enum {
     FUSE_MOPT_INIT_TIMEOUT        = 1ULL << 11,
     FUSE_MOPT_IOSIZE              = 1ULL << 12,
     FUSE_MOPT_JAIL_SYMLINKS       = 1ULL << 13,
-    FUSE_MOPT_KILL_ON_UNMOUNT     = 1ULL << 14,
     FUSE_MOPT_NEGATIVE_VNCACHE    = 1ULL << 15,
     FUSE_MOPT_NO_ALERTS           = 1ULL << 16,
     FUSE_MOPT_NO_APPLEDOUBLE      = 1ULL << 17,
