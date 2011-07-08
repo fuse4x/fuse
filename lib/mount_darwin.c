@@ -34,6 +34,7 @@
 #include "fuse_opt.h"
 #include "fuse_darwin.h"
 #include "fuse_mount.h"
+#include "fuse_common_compat.h"
 
 struct mount_options {
 	struct fuse_mount_args fuse_args; // mount flags for fuse4x kext
@@ -456,6 +457,13 @@ void fuse_kern_unmount(const char *mountpoint, int fd)
 		close(fd);
 
 	unmount(mountpoint, MNT_FORCE);
+	return;
+}
+
+void fuse_unmount_compat22(const char *mountpoint)
+{
+	unmount(mountpoint, 0);
+
 	return;
 }
 
