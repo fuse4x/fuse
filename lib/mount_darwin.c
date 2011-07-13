@@ -340,7 +340,7 @@ static bool check_os_kernel_version(void)
 	struct utsname u;
 
 	if (uname(&u) < 0) {
-		perror("fuse4x uname():");
+		perror("fuse4x uname");
 		return false;
 	}
 
@@ -357,13 +357,12 @@ static bool check_os_kernel_version(void)
 		return false;
 	}
 
-	return major >= 10;
+	return major >= 9; // 9 is kernel for MaxOSX Leopard (10.5)
 }
 
 static bool check_kext_version(bool quiet_mode)
 {
 	if (!check_os_kernel_version()) {
-		// TODO: Check that OS at lease 10.6
 		if (!quiet_mode) {
 			CFUserNotificationDisplayNotice(
 				(CFTimeInterval)0,

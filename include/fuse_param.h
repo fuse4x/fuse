@@ -5,6 +5,7 @@
 #ifndef _FUSE_PARAM_H_
 #define _FUSE_PARAM_H_
 
+#include <sys/vmparam.h>
 
 /* User Control */
 
