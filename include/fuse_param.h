@@ -30,7 +30,7 @@
 #define FUSE4X_DEVICE_BASENAME            "fuse4x"
 
 /*
- * This is the number of /dev/fuse<n> nodes we will create. <n> goes from
+ * This is the number of /dev/fuse4x<n> nodes we will create. <n> goes from
  * 0 to (FUSE_NDEVICES - 1).
  */
 #define FUSE4X_NDEVICES                   24
