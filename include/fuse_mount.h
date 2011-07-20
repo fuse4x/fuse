@@ -73,7 +73,6 @@ enum {
     FUSE_MOPT_NO_UBC              = 1ULL << 23,
     FUSE_MOPT_NO_VNCACHE          = 1ULL << 24,
     FUSE_MOPT_USE_INO             = 1ULL << 25,
-    FUSE_MOPT_PING_DISKARB        = 1ULL << 26,
     FUSE_MOPT_AUTO_CACHE          = 1ULL << 27,
     FUSE_MOPT_NATIVE_XATTR        = 1ULL << 28,
     FUSE_MOPT_SPARSE              = 1ULL << 29,

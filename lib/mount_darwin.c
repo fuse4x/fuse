@@ -93,7 +93,6 @@ enum {
 	KEY_NO_VNCACHE,
 	KEY_USE_INO,
 	KEY_VOLNAME,
-	KEY_PING_DISKARB,
 	KEY_AUTO_CACHE,
 	KEY_NATIVE_XATTR,
 	KEY_SPARSE,
@@ -158,12 +157,12 @@ static const struct fuse_opt fuse_mount_opts[] = {
 	FUSE_OPT_KEY("use_ino", KEY_USE_INO),
 	FUSE_OPT_KEY("volname=", KEY_VOLNAME),
 	FUSE_OPT_KEY("volicon=", KEY_VOLICON),
-	FUSE_OPT_KEY("ping_diskarb", KEY_PING_DISKARB),
 	FUSE_OPT_KEY("auto_cache", KEY_AUTO_CACHE),
 	FUSE_OPT_KEY("native_xattr", KEY_NATIVE_XATTR),
 	FUSE_OPT_KEY("sparse", KEY_SPARSE),
 	FUSE_OPT_KEY("quiet", KEY_QUIET),
 
+	FUSE_OPT_KEY("ping_diskarb", KEY_IGNORED),
 	FUSE_OPT_KEY("subtype=", KEY_IGNORED),
 	FUSE_OPT_END
 };
@@ -237,7 +236,6 @@ static int fuse_mount_opt_proc(void *data, const char *arg, int key,
 	FUSE_MOUNT_OPT(NO_UBC)
 	FUSE_MOUNT_OPT(NO_VNCACHE)
 	FUSE_MOUNT_OPT(USE_INO)
-	FUSE_MOUNT_OPT(PING_DISKARB)
 	FUSE_MOUNT_OPT(AUTO_CACHE)
 	FUSE_MOUNT_OPT(NATIVE_XATTR)
 	FUSE_MOUNT_OPT(SPARSE)
