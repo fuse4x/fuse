@@ -45,12 +45,16 @@ struct mount_options {
 
 enum {
 	KEY_RDONLY,
-	KEY_SYNCHRONOUS,
+	KEY_WRITABLE,
 	KEY_NOEXEC,
+	KEY_EXEC,
 	KEY_NOSUID,
+	KEY_SUID,
 	KEY_NODEV,
+	KEY_DEV,
 	KEY_UNION,
 	KEY_ASYNC,
+	KEY_SYNC,
 	KEY_QUARANTINE,
 	KEY_LOCAL,
 	KEY_QUOTA,
@@ -63,6 +67,7 @@ enum {
 	KEY_DEFWRITE,
 	KEY_MULTILABEL,
 	KEY_NOATIME,
+	KEY_ATIME,
 
 	KEY_ALLOW_OTHER,
 	KEY_ALLOW_RECURSION,
@@ -107,11 +112,16 @@ static const struct fuse_opt fuse_mount_opts[] = {
 	// See http://fxr.watson.org/fxr/source/bsd/sys/mount.h?v=xnu-1456.1.26#L279
 	FUSE_OPT_KEY("-r", KEY_RDONLY),
 	FUSE_OPT_KEY("rdonly", KEY_RDONLY),
-	FUSE_OPT_KEY("sync", KEY_SYNCHRONOUS),
+	FUSE_OPT_KEY("ro", KEY_RDONLY),
+	FUSE_OPT_KEY("rw", KEY_WRITABLE),
+	FUSE_OPT_KEY("exec", KEY_EXEC),
 	FUSE_OPT_KEY("noexec", KEY_NOEXEC),
+	FUSE_OPT_KEY("suid", KEY_SUID),
 	FUSE_OPT_KEY("nosuid", KEY_NOSUID),
+	FUSE_OPT_KEY("dev", KEY_DEV),
 	FUSE_OPT_KEY("nodev", KEY_NODEV),
 	FUSE_OPT_KEY("union", KEY_UNION),
+	FUSE_OPT_KEY("sync", KEY_SYNC),
 	FUSE_OPT_KEY("async", KEY_ASYNC),
 	FUSE_OPT_KEY("quarantine", KEY_QUARANTINE),
 	FUSE_OPT_KEY("local", KEY_LOCAL),
@@ -124,6 +134,7 @@ static const struct fuse_opt fuse_mount_opts[] = {
 	FUSE_OPT_KEY("nouserxattr", KEY_NOUSERXATTR),
 	FUSE_OPT_KEY("defwrite", KEY_DEFWRITE),
 	FUSE_OPT_KEY("multilabel", KEY_MULTILABEL),
+	FUSE_OPT_KEY("atime", KEY_ATIME),
 	FUSE_OPT_KEY("noatime", KEY_NOATIME),
 
 	// fuse4x specific mount flags
@@ -168,8 +179,17 @@ static const struct fuse_opt fuse_mount_opts[] = {
 };
 
 
-#define STANDARD_MOUNT_OPT(name) case KEY_ ## name: mo->standard_args |= MNT_ ## name; return 0;
-#define FUSE_MOUNT_OPT(name) case KEY_ ## name: mo->fuse_args.altflags |= FUSE_MOPT_ ## name; return 0;
+#define STANDARD_MOUNT_OPT(name) \
+    case KEY_ ## name: mo->standard_args |= MNT_ ## name; return 0;
+
+// some options also have 'negative' value that reset it to its default value.
+// it is needed as some tools (e.g. autofs) pass the default keys (such as 'rw').
+#define STANDARD_MOUNT_OPT_WITH_NEGATIVE(name, negative_key) \
+    case KEY_ ## name: mo->standard_args |= MNT_ ## name; return 0; \
+    case KEY_ ## negative_key: mo->standard_args &= ~MNT_ ## name; return 0;
+
+#define FUSE_MOUNT_OPT(name) \
+    case KEY_ ## name: mo->fuse_args.altflags |= FUSE_MOPT_ ## name; return 0;
 
 #define FUSE_MOUNT_OPT_PARSE_U32(key, param_name) \
 	case KEY_ ## key: \
@@ -198,13 +218,12 @@ static int fuse_mount_opt_proc(void *data, const char *arg, int key,
 
 	switch (key) {
 
-	STANDARD_MOUNT_OPT(RDONLY)
-	STANDARD_MOUNT_OPT(SYNCHRONOUS)
-	STANDARD_MOUNT_OPT(NOEXEC)
-	STANDARD_MOUNT_OPT(NOSUID)
-	STANDARD_MOUNT_OPT(NODEV)
+	STANDARD_MOUNT_OPT_WITH_NEGATIVE(RDONLY, WRITABLE)
+	STANDARD_MOUNT_OPT_WITH_NEGATIVE(NOEXEC, EXEC)
+	STANDARD_MOUNT_OPT_WITH_NEGATIVE(NOSUID, SUID)
+	STANDARD_MOUNT_OPT_WITH_NEGATIVE(NODEV, DEV)
 	STANDARD_MOUNT_OPT(UNION)
-	STANDARD_MOUNT_OPT(ASYNC)
+	STANDARD_MOUNT_OPT_WITH_NEGATIVE(ASYNC, SYNC)
 	STANDARD_MOUNT_OPT(QUARANTINE)
 	STANDARD_MOUNT_OPT(LOCAL)
 	STANDARD_MOUNT_OPT(QUOTA)
@@ -216,7 +235,7 @@ static int fuse_mount_opt_proc(void *data, const char *arg, int key,
 	STANDARD_MOUNT_OPT(NOUSERXATTR)
 	STANDARD_MOUNT_OPT(DEFWRITE)
 	STANDARD_MOUNT_OPT(MULTILABEL)
-	STANDARD_MOUNT_OPT(NOATIME)
+	STANDARD_MOUNT_OPT_WITH_NEGATIVE(NOATIME, ATIME)
 
 	FUSE_MOUNT_OPT(ALLOW_OTHER)
 	FUSE_MOUNT_OPT(ALLOW_ROOT)
