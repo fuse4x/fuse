@@ -6,6 +6,7 @@
 #define _FUSE_PARAM_H_
 
 #include <sys/vmparam.h>
+#include <sys/ioctl.h>
 
 /* User Control */
 
@@ -96,5 +97,11 @@
 #define FUSE_UIO_BACKUP_MAX                8
 
 #define FUSE_MAXNAMLEN                     255
+
+
+/* FUSEDEVIOCxxx */
+
+/* Mark the daemon as dead. */
+#define FUSEDEVIOCSETDAEMONDEAD        _IO('F', 1)
 
 #endif /* _FUSE_PARAM_H_ */
