@@ -1,3 +1,48 @@
+2011-09-13  Miklos Szeredi <miklos@szeredi.hu>
+
+	* Released 2.8.6
+
+2011-08-26  Miklos Szeredi <miklos@szeredi.hu>
+
+	* If configured with --disable-mtab then don't call mount(8) from
+	libfuse to update the mtab.  Reported by: James Sierp
+
+2011-01-31  Miklos Szeredi <miklos@szeredi.hu>
+
+	* Always call umount with --no-canonicalize --fake options to
+	prevent symlink attacks at umount.  util-linux >= 2.18 or a
+	suitably patched version is required.
+
+	* Always call mount with --no-canonicalize option to prevent
+	symlink attacks on mount.
+
+	* In case of failure to add to /etc/mtab use same mountpoint for
+	cleanup as for mounting.  Reported by Marc Deslauriers
+
+2010-11-08  Miklos Szeredi <miklos@szeredi.hu>
+
+	* Open /dev/null for write instead of read for redirecting stdout
+	and stderr
+
+2010-10-14  Miklos Szeredi <miklos@szeredi.hu>
+
+	Use LTLIBICONV when linking libfuse.  This fixes building against
+	uclibc + libiconv.  Patch by Natanael Copa
+
+2010-10-05  Miklos Szeredi <miklos@szeredi.hu>
+
+	* Add missing argument check in ulockmgr.c to prevent calling
+	ulockmgr_server with illegal arguments. This would cause an ever
+	growing list of ulockmgr_server processes with an endless list of
+	open files which finally exceeds the open file handle limit.
+	Patch by Markus Ammer
+
+2010-09-28  Miklos Szeredi <miklos@szeredi.hu>
+
+	* Fix ambiguous symbol version for fuse_chan_new.
+	fuse_versionscript included fuse_chan_new in both FUSE_2.4 and
+	FUSE_2.6.  Remove the FUSE_2.4, which is invalid.
+
 2010-09-28  Miklos Szeredi <miklos@szeredi.hu>
 
 	* Released 2.8.5

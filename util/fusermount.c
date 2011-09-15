@@ -407,8 +407,15 @@ static int unmount_fuse_locked(const char *mnt, int quiet, int lazy)
 	if (res == -1)
 		goto out;
 
-	res = fuse_mnt_umount(progname, mnt, last, lazy);
+	res = umount2(last, lazy ? 2 : 0);
+	if (res == -1 && !quiet) {
+		fprintf(stderr,
+			"%s: failed to unmount %s: %s\n",
+			progname, mnt, strerror(errno));
+	}
 
+	if (res == 0)
+		res = fuse_mnt_remove_mount(progname, mnt);
 out:
 	free(copy);
 	if (currdir_fd != -1) {
@@ -875,7 +882,7 @@ static int check_version(const char *dev)
 }
 
 static int check_perm(const char **mntp, struct stat *stbuf, int *currdir_fd,
-		      int *mountpoint_fd)
+		      int *mountpoint_fd, int *isdir)
 {
 	int res;
 	const char *mnt = *mntp;
@@ -893,6 +900,7 @@ static int check_perm(const char **mntp, struct stat *stbuf, int *currdir_fd,
 		return 0;
 
 	if (S_ISDIR(stbuf->st_mode)) {
+		*isdir = 1;
 		*currdir_fd = open(".", O_RDONLY);
 		if (*currdir_fd == -1) {
 			fprintf(stderr,
@@ -900,10 +908,16 @@ static int check_perm(const char **mntp, struct stat *stbuf, int *currdir_fd,
 				progname, strerror(errno));
 			return -1;
 		}
-		res = chdir(mnt);
+		*mountpoint_fd = open(mnt, O_RDONLY);
+		if (*mountpoint_fd == -1) {
+			fprintf(stderr, "%s: failed to open %s: %s\n",
+				progname, mnt, strerror(errno));
+			return -1;
+		}
+		res = fchdir(*mountpoint_fd);
 		if (res == -1) {
 			fprintf(stderr,
-				"%s: failed to chdir to mountpoint: %s\n",
+				"%s: failed to fchdir to mountpoint: %s\n",
 				progname, strerror(errno));
 			return -1;
 		}
@@ -1029,6 +1043,7 @@ static int mount_fuse(const char *mnt, const char *opts)
 	const char *real_mnt = mnt;
 	int currdir_fd = -1;
 	int mountpoint_fd = -1;
+	int isdir = 0;
 
 	fd = open_fuse_device(&dev);
 	if (fd == -1)
@@ -1049,7 +1064,7 @@ static int mount_fuse(const char *mnt, const char *opts)
 	res = check_version(dev);
 	if (res != -1) {
 		res = check_perm(&real_mnt, &stbuf, &currdir_fd,
-				 &mountpoint_fd);
+				 &mountpoint_fd, &isdir);
 		restore_privs();
 		if (res != -1)
 			res = do_mount(real_mnt, &type, stbuf.st_mode & S_IFMT,
@@ -1063,21 +1078,36 @@ static int mount_fuse(const char *mnt, const char *opts)
 		close(currdir_fd);
 	}
 	if (mountpoint_fd != -1)
-		close(mountpoint_fd);
+		fcntl(mountpoint_fd, F_SETFD, FD_CLOEXEC);
 
 	if (res == -1) {
 		close(fd);
+		if (mountpoint_fd != -1)
+			close(mountpoint_fd);
 		return -1;
 	}
 
 	if (geteuid() == 0) {
 		res = add_mount(source, mnt, type, mnt_opts);
 		if (res == -1) {
-			umount2(mnt, 2); /* lazy umount */
+			if (isdir && mountpoint_fd != -1) {
+				res = fchdir(mountpoint_fd);
+				if (res == -1) {
+					close(mountpoint_fd);
+					close(fd);
+					return -1;
+				}
+			}
+			umount2(real_mnt, 2); /* lazy umount */
+			if (mountpoint_fd != -1)
+				close(mountpoint_fd);
 			close(fd);
 			return -1;
 		}
 	}
+
+	if (mountpoint_fd != -1)
+		close(mountpoint_fd);
 
 	free(source);
 	free(type);
