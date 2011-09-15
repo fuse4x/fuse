@@ -11,6 +11,8 @@
 		DE09A93D139EE4DC00DE4AF1 /* subdir.c in Sources */ = {isa = PBXBuildFile; fileRef = DE09A939139EE4DC00DE4AF1 /* subdir.c */; };
 		DE09A93E139EE4DC00DE4AF1 /* threadid.c in Sources */ = {isa = PBXBuildFile; fileRef = DE09A93A139EE4DC00DE4AF1 /* threadid.c */; };
 		DE09A93F139EE4DC00DE4AF1 /* volicon.c in Sources */ = {isa = PBXBuildFile; fileRef = DE09A93B139EE4DC00DE4AF1 /* volicon.c */; };
+		DE163B0A1421952700D5F0D1 /* darwin_semaphore.c in Sources */ = {isa = PBXBuildFile; fileRef = DE163B081421952700D5F0D1 /* darwin_semaphore.c */; };
+		DE163B0B1421952700D5F0D1 /* darwin_semaphore.h in Headers */ = {isa = PBXBuildFile; fileRef = DE163B091421952700D5F0D1 /* darwin_semaphore.h */; };
 		DE31150B1395608000AB9DA8 /* cuse_lowlevel.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115001395608000AB9DA8 /* cuse_lowlevel.h */; };
 		DE31150C1395608000AB9DA8 /* fuse_common_compat.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115011395608000AB9DA8 /* fuse_common_compat.h */; };
 		DE31150D1395608000AB9DA8 /* fuse_common.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115021395608000AB9DA8 /* fuse_common.h */; };
@@ -50,6 +52,8 @@
 		DE09A939139EE4DC00DE4AF1 /* subdir.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = subdir.c; sourceTree = "<group>"; };
 		DE09A93A139EE4DC00DE4AF1 /* threadid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = threadid.c; sourceTree = "<group>"; };
 		DE09A93B139EE4DC00DE4AF1 /* volicon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = volicon.c; sourceTree = "<group>"; };
+		DE163B081421952700D5F0D1 /* darwin_semaphore.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = darwin_semaphore.c; sourceTree = "<group>"; };
+		DE163B091421952700D5F0D1 /* darwin_semaphore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = darwin_semaphore.h; sourceTree = "<group>"; };
 		DE3115001395608000AB9DA8 /* cuse_lowlevel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cuse_lowlevel.h; path = include/cuse_lowlevel.h; sourceTree = "<group>"; };
 		DE3115011395608000AB9DA8 /* fuse_common_compat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_common_compat.h; path = include/fuse_common_compat.h; sourceTree = "<group>"; };
 		DE3115021395608000AB9DA8 /* fuse_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_common.h; path = include/fuse_common.h; sourceTree = "<group>"; };
@@ -110,6 +114,15 @@
 			path = lib/modules;
 			sourceTree = "<group>";
 		};
+		DE163B071421952700D5F0D1 /* compat */ = {
+			isa = PBXGroup;
+			children = (
+				DE163B081421952700D5F0D1 /* darwin_semaphore.c */,
+				DE163B091421952700D5F0D1 /* darwin_semaphore.h */,
+			);
+			path = compat;
+			sourceTree = "<group>";
+		};
 		DE4FEE34139560B900833822 /* include */ = {
 			isa = PBXGroup;
 			children = (
@@ -158,6 +171,7 @@
 		DE5C7E3B1395602800E59B31 = {
 			isa = PBXGroup;
 			children = (
+				DE163B071421952700D5F0D1 /* compat */,
 				DE4FEE34139560B900833822 /* include */,
 				DE4FEE4D1395610C00833822 /* lib */,
 				DEC6535713A3B18A00B3D737 /* External Frameworks and Libraries */,
@@ -214,6 +228,7 @@
 				DE4FEE611395635300833822 /* fuse_mount.h in Headers */,
 				DE4FEE621395635300833822 /* fuse_param.h in Headers */,
 				DE4FEE631395635300833822 /* fuse_version.h in Headers */,
+				DE163B0B1421952700D5F0D1 /* darwin_semaphore.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,6 +257,9 @@
 /* Begin PBXProject section */
 		DE5C7E3D1395602800E59B31 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+			};
 			buildConfigurationList = DE5C7E401395602800E59B31 /* Build configuration list for PBXProject "fuse" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
@@ -281,6 +299,7 @@
 				DE09A93D139EE4DC00DE4AF1 /* subdir.c in Sources */,
 				DE09A93E139EE4DC00DE4AF1 /* threadid.c in Sources */,
 				DE09A93F139EE4DC00DE4AF1 /* volicon.c in Sources */,
+				DE163B0A1421952700D5F0D1 /* darwin_semaphore.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

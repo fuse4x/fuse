@@ -15,7 +15,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#ifdef __APPLE__
+#include <darwin_semaphore.h>
+#else
 #include <semaphore.h>
+#endif
 #include <errno.h>
 #include <sys/time.h>
 
@@ -38,11 +42,7 @@ struct fuse_mt {
 	struct fuse_session *se;
 	struct fuse_chan *prevch;
 	struct fuse_worker main;
-#ifdef UNNAMED_SEMAPHORES_NOT_SUPPORTED
-	sem_t *finish;
-#else
 	sem_t finish;
-#endif
 	int exit;
 	int error;
 };
@@ -131,11 +131,7 @@ static void *fuse_do_work(void *data)
 		pthread_mutex_unlock(&mt->lock);
 	}
 
-#ifdef UNNAMED_SEMAPHORES_NOT_SUPPORTED
-	sem_post(mt->finish);
-#else
 	sem_post(&mt->finish);
-#endif
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pause();
 
@@ -218,16 +214,7 @@ int fuse_session_loop_mt(struct fuse_session *se)
 	mt.numavail = 0;
 	mt.main.thread_id = pthread_self();
 	mt.main.prev = mt.main.next = &mt.main;
-#ifdef UNNAMED_SEMAPHORES_NOT_SUPPORTED
-	static unsigned int semaphore_counter = 0;
-
-	#define MAX_SEMAPHORE_NAME_LENGTH 17
-	char semaphore_name[MAX_SEMAPHORE_NAME_LENGTH];
-	snprintf(semaphore_name, MAX_SEMAPHORE_NAME_LENGTH, "mt_finish_%u", semaphore_counter++);
-	mt.finish = sem_open(semaphore_name, O_CREAT, 0777, 0);
-#else
 	sem_init(&mt.finish, 0, 0);
-#endif
 	fuse_mutex_init(&mt.lock);
 
 	pthread_mutex_lock(&mt.lock);
@@ -236,11 +223,7 @@ int fuse_session_loop_mt(struct fuse_session *se)
 	if (!err) {
 		/* sem_wait() is interruptible */
 		while (!fuse_session_exited(se))
-#ifdef UNNAMED_SEMAPHORES_NOT_SUPPORTED
-			sem_wait(mt.finish);
-#else
 			sem_wait(&mt.finish);
-#endif
 
 		for (w = mt.main.next; w != &mt.main; w = w->next)
 			pthread_cancel(w->thread_id);
@@ -254,11 +237,7 @@ int fuse_session_loop_mt(struct fuse_session *se)
 	}
 
 	pthread_mutex_destroy(&mt.lock);
-#ifdef UNNAMED_SEMAPHORES_NOT_SUPPORTED
-	sem_unlink(semaphore_name);
-#else
 	sem_destroy(&mt.finish);
-#endif
 	fuse_session_reset(se);
 	return err;
 }

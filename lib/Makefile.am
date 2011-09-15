@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-AM_CPPFLAGS = -I$(top_srcdir)/include -DFUSERMOUNT_DIR=\"$(bindir)\" \
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/compat -DFUSERMOUNT_DIR=\"$(bindir)\" \
   -D_FILE_OFFSET_BITS=64 -D_REENTRANT -DFUSE_USE_VERSION=26
 
 lib_LTLIBRARIES = libfuse4x.la
@@ -16,7 +16,7 @@ endif
 
 if DARWIN
 mount_source = mount_darwin.c
-extra_source = modules/threadid.c modules/volicon.c
+extra_source = modules/threadid.c modules/volicon.c ../compat/darwin_semaphore.c
 endif
 
 if LINUX
