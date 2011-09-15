@@ -307,7 +307,7 @@ static int fuse_mount_opt_proc(void *data, const char *arg, int key,
 	return 1;
 }
 
-static int post_notification(char *name, char const *udata_keys[], char const *udata_values[], CFIndex nfNum)
+static int post_notification(char const *name, char const *udata_keys[], char const *udata_values[], CFIndex nfNum)
 {
 	CFNotificationCenterRef distributedCenter = CFNotificationCenterGetDistributedCenter();
 
