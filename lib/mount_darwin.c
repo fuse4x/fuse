@@ -416,9 +416,10 @@ static bool check_kext_version(bool quiet_mode)
 				_exit(errno);
 			}
 		} else {
-			if (waitpid(pid, &result, 0) == -1) {
+			while ((waitpid(pid, &result, 0) == -1) && (errno == EINTR)) {};
+
+			if (result == -1) {
 				perror("waitpid");
-				result = -1;
 			}
 		}
 
