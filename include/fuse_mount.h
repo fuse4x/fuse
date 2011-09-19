@@ -34,12 +34,6 @@ struct fuse_mount_args {
 };
 typedef struct fuse_mount_args fuse_mount_args;
 
-/* file system subtype */
-enum {
-    FUSE_FSSUBTYPE_UNKNOWN = 0,
-    FUSE_FSSUBTYPE_INVALID = -1,
-};
-
 /* File system type name. */
 
 #define FUSE_FSTYPENAME_PREFIX FUSE4X_FS_TYPE "_"
