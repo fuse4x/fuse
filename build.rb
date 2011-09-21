@@ -38,7 +38,7 @@ system('git clean -xdf') if clean
 
 unless File.exists?('Makefile') then
   system("autoreconf -f -i -Wall,no-obsolete") or abort
-  system("./configure --disable-dependency-tracking --disable-static") or abort
+  system("./configure CFLAGS='-arch i386 -arch x86_64 -mmacosx-version-min=10.5' LDFLAGS='-arch i386 -arch x86_64' --disable-dependency-tracking --disable-static") or abort
 end
 
 system("make -s -j3") or abort
