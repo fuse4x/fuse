@@ -15,7 +15,7 @@ root_dir = ARGV.index('--root') ? ARGV[ARGV.index('--root') + 1] : nil
 
 abort("root directory #{root_dir} does not exist") if ARGV.index('--root') and not File.exists?(root_dir)
 
-if File.exists?("../kext/build.rb") then
+if File.exists?('../kext/build.rb') then
   # kext project exists - let's check that common files are the same
   common_files = [
       ['include/fuse_param.h', 'common/fuse_param.h'],
@@ -37,11 +37,11 @@ end
 system('git clean -xdf') if clean
 
 unless File.exists?('Makefile') then
-  system("autoreconf -f -i -Wall,no-obsolete") or abort
-  system("./configure CFLAGS='-arch i386 -arch x86_64 -mmacosx-version-min=10.5' LDFLAGS='-arch i386 -arch x86_64' --disable-dependency-tracking --disable-static") or abort
+  system('autoreconf -f -i -Wall,no-obsolete') or abort
+  system('./configure CFLAGS="-arch i386 -arch x86_64 -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -arch x86_64" --disable-dependency-tracking --disable-static') or abort
 end
 
-system("make -s -j3") or abort
+system('make -s -j3') or abort
 
 cmd = 'sudo make install'
 system(cmd)
