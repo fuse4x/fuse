@@ -1,5 +1,6 @@
 /*
- * Copyright (C) fuse4x.org 2011
+ * Copyright (C) 2006-2008 Google. All Rights Reserved.
+ * Copyright (C) 2011 Anatol Pomozov. All Rights Reserved.
  *
  * Derived from mount_bsd.c from the fuse distribution.
  *

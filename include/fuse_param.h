@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2006-2008 Google, 2011 fuse4x.org. All Rights Reserved.
+ * Copyright (C) 2006-2008 Google. All Rights Reserved.
+ * Copyright (C) 2011 Anatol Pomozov. All Rights Reserved.
  */
 
 #ifndef _FUSE_PARAM_H_
