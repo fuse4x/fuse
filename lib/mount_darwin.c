@@ -153,7 +153,6 @@ static const struct fuse_opt fuse_mount_opts[] = {
 	FUSE_OPT_KEY("fsname=", KEY_FSNAME),
 	FUSE_OPT_KEY("fssubtype=", KEY_FSSUBTYPE),
 	FUSE_OPT_KEY("fstypename=", KEY_FSTYPENAME),
-	FUSE_OPT_KEY("init_timeout=", KEY_INIT_TIMEOUT),
 	FUSE_OPT_KEY("iosize=", KEY_IOSIZE),
 	FUSE_OPT_KEY("jail_symlinks", KEY_JAIL_SYMLINKS),
 	FUSE_OPT_KEY("negative_vncache", KEY_NEGATIVE_VNCACHE),
@@ -174,6 +173,7 @@ static const struct fuse_opt fuse_mount_opts[] = {
 	FUSE_OPT_KEY("sparse", KEY_SPARSE),
 	FUSE_OPT_KEY("quiet", KEY_QUIET),
 
+	FUSE_OPT_KEY("init_timeout=", KEY_IGNORED),
 	FUSE_OPT_KEY("ping_diskarb", KEY_IGNORED),
 	FUSE_OPT_KEY("subtype=", KEY_IGNORED),
 	FUSE_OPT_END
@@ -292,7 +292,6 @@ static int fuse_mount_opt_proc(void *data, const char *arg, int key,
 
 	FUSE_MOUNT_OPT_PARSE_U32(BLOCKSIZE, blocksize)
 	FUSE_MOUNT_OPT_PARSE_U32(DAEMON_TIMEOUT, daemon_timeout)
-	FUSE_MOUNT_OPT_PARSE_U32(INIT_TIMEOUT, init_timeout)
 	FUSE_MOUNT_OPT_PARSE_U32(IOSIZE, iosize)
 	FUSE_MOUNT_OPT_PARSE_U32(FSID, fsid)
 	FUSE_MOUNT_OPT_PARSE_U32(FSSUBTYPE, fssubtype)
@@ -547,7 +546,6 @@ int fuse_kern_mount(const char *mountpoint, struct fuse_args *args)
 
 	opts.fuse_args.blocksize = FUSE_DEFAULT_BLOCKSIZE;
 	opts.fuse_args.daemon_timeout = FUSE_DEFAULT_DAEMON_TIMEOUT;
-	opts.fuse_args.init_timeout = FUSE_DEFAULT_INIT_TIMEOUT;
 	opts.fuse_args.iosize = FUSE_DEFAULT_IOSIZE;
 
 
@@ -611,13 +609,6 @@ int fuse_kern_mount(const char *mountpoint, struct fuse_args *args)
 
 	if (opts.fuse_args.daemon_timeout > FUSE_MAX_DAEMON_TIMEOUT)
 		opts.fuse_args.daemon_timeout = FUSE_MAX_DAEMON_TIMEOUT;
-
-	if (opts.fuse_args.init_timeout < FUSE_MIN_INIT_TIMEOUT)
-		opts.fuse_args.init_timeout = FUSE_MIN_INIT_TIMEOUT;
-
-	if (opts.fuse_args.init_timeout > FUSE_MAX_INIT_TIMEOUT)
-		opts.fuse_args.init_timeout = FUSE_MAX_INIT_TIMEOUT;
-
 
 	int device_no = -1;
 	char devpath[MAXPATHLEN];
