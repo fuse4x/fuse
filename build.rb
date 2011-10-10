@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 # Possible flags are:
-#   --debug       this builds distribuition with debug flags enabled
+#   --release     this builds module for final distribution
 #   --root DIR    install the binary into this directory. If this flag is not set - the script
 #                 redeploys kext to local machine and restarts it
-#   --clean       clean before build
 
 CWD = File.dirname(__FILE__)
 KEXT_DIR = '/System/Library/Extensions/'
 Dir.chdir(CWD)
 
-debug = ARGV.include?('--debug')
-clean = ARGV.include?('--clean')
+release = ARGV.include?('--release')
 root_dir = ARGV.index('--root') ? ARGV[ARGV.index('--root') + 1] : nil
 
 abort("root directory #{root_dir} does not exist") if ARGV.index('--root') and not File.exists?(root_dir)
@@ -34,11 +32,17 @@ if File.exists?('../kext/build.rb') then
   end
 end
 
-system('git clean -xdf') if clean
+system('git clean -xdf') if release
 
 unless File.exists?('Makefile') then
+  flags = ''
+  if release then
+    archs = '-arch i386 -arch x86_64'
+    flags += "CFLAGS='#{archs} -mmacosx-version-min=10.5' LDFLAGS='#{archs}' --disable-dependency-tracking"
+  end
+
   system('autoreconf -f -i -Wall,no-obsolete') or abort
-  system('./configure CFLAGS="-arch i386 -arch x86_64 -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -arch x86_64" --disable-dependency-tracking --disable-static') or abort
+  system("./configure #{flags} --disable-static") or abort
 end
 
 system('make -s -j3') or abort
