@@ -17,7 +17,7 @@ fi
 case $target_os in
      *linux*)	arch=linux;;
      *bsd*)	arch=bsd;;
-     *darwin*) arch=darwin;;
+     *darwin*)	arch=darwin;;
      *)		arch=unknown;;
 esac
 
