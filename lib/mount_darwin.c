@@ -33,7 +33,6 @@
 
 #include "fuse_i.h"
 #include "fuse_opt.h"
-#include "fuse_darwin.h"
 #include "fuse_mount.h"
 #include "fuse_common_compat.h"
 
@@ -307,51 +306,6 @@ static int fuse_mount_opt_proc(void *data, const char *arg, int key,
 	return 1;
 }
 
-static int post_notification(char const *name, char const *udata_keys[], char const *udata_values[], CFIndex nfNum)
-{
-	CFNotificationCenterRef distributedCenter = CFNotificationCenterGetDistributedCenter();
-
-	if (!distributedCenter) {
-		return -1;
-	}
-
-	CFStringRef nfName = CFStringCreateWithCString(kCFAllocatorDefault, name, kCFStringEncodingUTF8);
-	CFStringRef nfObject = CFStringCreateWithCString(kCFAllocatorDefault, LIBFUSE_UNOTIFICATIONS_OBJECT,
-			kCFStringEncodingUTF8);
-
-	CFMutableDictionaryRef nfUdata = CFDictionaryCreateMutable(kCFAllocatorDefault, nfNum,
-			&kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-
-	if (!nfName || !nfObject || !nfUdata) {
-		goto out;
-	}
-
-	CFIndex i = 0;
-	for (; i < nfNum; i++) {
-		CFStringRef aKey = CFStringCreateWithCString(kCFAllocatorDefault, udata_keys[i], kCFStringEncodingUTF8);
-		CFStringRef aValue = CFStringCreateWithCString(kCFAllocatorDefault, udata_values[i], kCFStringEncodingUTF8);
-
-		CFDictionarySetValue(nfUdata, aKey, aValue);
-
-		CFRelease(aKey);
-		CFRelease(aValue);
-	}
-
-	CFNotificationCenterPostNotification(distributedCenter, nfName, nfObject, nfUdata, false);
-
-out:
-	if (nfName)
-		CFRelease(nfName);
-
-	if (nfObject)
-		CFRelease(nfObject);
-
-	if (nfUdata)
-		CFRelease(nfUdata);
-
-	return 0;
-}
-
 static bool check_os_kernel_version(void)
 {
 	struct utsname u;
@@ -388,12 +342,11 @@ static bool check_kext_version(bool quiet_mode)
 				NULL,
 				NULL,
 				CFSTR("Operating System Too Old"),
-				CFSTR("The installed fuse4x version is too new for the operating system. Please downgrade your fuse4x installation to one that is compatible with the currently running operating system."),
+				CFSTR("Fuse4X is not supported on this MacOSX version. Minimal requirement is Leopard (10.5)."),
 				CFSTR("OK")
 			);
 		}
-		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_OSISTOOOLD, NULL, NULL, 0);
-		fprintf(stderr, "fuse4x is not supported on this MacOSX version.\n");
+		fprintf(stderr, "fuse4x is not supported on this MacOSX version. Minimal requirement is Leopard (10.5).\n");
 		return false;
 	}
 
@@ -436,7 +389,6 @@ static bool check_kext_version(bool quiet_mode)
 					CFSTR("OK")
 				);
 			}
-			post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_INVALID_KEXT, NULL, NULL, 0);
 			fprintf(stderr, "fuse4x kernel extension was not loaded. Please check /var/log/system.log for more information.\n");
 			return false;
 		}
@@ -457,7 +409,6 @@ static bool check_kext_version(bool quiet_mode)
 				CFSTR("OK")
 			);
 		}
-		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_VERSIONMISMATCH, NULL, NULL, 0);
 		fprintf(stderr, "fuse4x client library version is incompatible with the kernel extension (kext='%s', library='%s').\n", version, FUSE4X_VERSION);
 		return false;
 	}
@@ -644,9 +595,6 @@ int fuse_kern_mount(const char *mountpoint, struct fuse_args *args)
 
 	int result = mount(FUSE4X_FS_TYPE, opts.fuse_args.mntpath, opts.standard_args, &opts.fuse_args);
 
-	char const *udata_keys[]   = { kFUSEMountPathKey };
-	char const *udata_values[] = { opts.fuse_args.mntpath };
-
 	if (result < 0) {
 		fprintf(stderr, "fuse4x failed to mount %s to %s : %s\n", devpath, opts.fuse_args.mntpath, strerror(errno));
 		if (!opts.quiet) {
@@ -656,15 +604,12 @@ int fuse_kern_mount(const char *mountpoint, struct fuse_args *args)
 				NULL,
 				NULL,
 				NULL,
-				CFSTR("Fuse4x failed to mount"),
+				CFSTR("Fuse4X failed to mount"),
 				CFSTR("The fuse4x failed to mount path."), // TODO Add mountpath
 				CFSTR("OK")
 			);
 		}
-		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_FAILEDTOMOUNT, udata_keys, udata_values, 1);
 		return -1;
-	} else {
-		post_notification(LIBFUSE_UNOTIFICATIONS_NOTIFY_MOUNTED, udata_keys, udata_values, 1);
 	}
 
 	return fd;

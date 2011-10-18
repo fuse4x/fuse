@@ -23,7 +23,7 @@
 #include <sys/param.h>
 
 #ifdef __APPLE__
-#include "fuse_darwin.h"
+#include "fuse_version.h"
 #endif
 
 enum  {

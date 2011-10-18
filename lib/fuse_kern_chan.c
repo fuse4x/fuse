@@ -16,7 +16,6 @@
 #include <assert.h>
 
 #ifdef __APPLE__
-#include "fuse_darwin.h"
 #include "fuse_param.h"
 #endif
 

@@ -17,7 +17,6 @@
 		DE31150C1395608000AB9DA8 /* fuse_common_compat.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115011395608000AB9DA8 /* fuse_common_compat.h */; };
 		DE31150D1395608000AB9DA8 /* fuse_common.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115021395608000AB9DA8 /* fuse_common.h */; };
 		DE31150E1395608000AB9DA8 /* fuse_compat.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115031395608000AB9DA8 /* fuse_compat.h */; };
-		DE31150F1395608000AB9DA8 /* fuse_darwin.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115041395608000AB9DA8 /* fuse_darwin.h */; };
 		DE3115101395608000AB9DA8 /* fuse_kernel.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115051395608000AB9DA8 /* fuse_kernel.h */; };
 		DE3115111395608000AB9DA8 /* fuse_lowlevel_compat.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115061395608000AB9DA8 /* fuse_lowlevel_compat.h */; };
 		DE3115121395608000AB9DA8 /* fuse_lowlevel.h in Headers */ = {isa = PBXBuildFile; fileRef = DE3115071395608000AB9DA8 /* fuse_lowlevel.h */; };
@@ -58,7 +57,6 @@
 		DE3115011395608000AB9DA8 /* fuse_common_compat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_common_compat.h; path = include/fuse_common_compat.h; sourceTree = "<group>"; };
 		DE3115021395608000AB9DA8 /* fuse_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_common.h; path = include/fuse_common.h; sourceTree = "<group>"; };
 		DE3115031395608000AB9DA8 /* fuse_compat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_compat.h; path = include/fuse_compat.h; sourceTree = "<group>"; };
-		DE3115041395608000AB9DA8 /* fuse_darwin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_darwin.h; path = include/fuse_darwin.h; sourceTree = "<group>"; };
 		DE3115051395608000AB9DA8 /* fuse_kernel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_kernel.h; path = include/fuse_kernel.h; sourceTree = "<group>"; };
 		DE3115061395608000AB9DA8 /* fuse_lowlevel_compat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_lowlevel_compat.h; path = include/fuse_lowlevel_compat.h; sourceTree = "<group>"; };
 		DE3115071395608000AB9DA8 /* fuse_lowlevel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fuse_lowlevel.h; path = include/fuse_lowlevel.h; sourceTree = "<group>"; };
@@ -132,7 +130,6 @@
 				DE3115011395608000AB9DA8 /* fuse_common_compat.h */,
 				DE3115021395608000AB9DA8 /* fuse_common.h */,
 				DE3115031395608000AB9DA8 /* fuse_compat.h */,
-				DE3115041395608000AB9DA8 /* fuse_darwin.h */,
 				DE3115051395608000AB9DA8 /* fuse_kernel.h */,
 				DE3115061395608000AB9DA8 /* fuse_lowlevel_compat.h */,
 				DE3115071395608000AB9DA8 /* fuse_lowlevel.h */,
@@ -215,7 +212,6 @@
 				DE31150C1395608000AB9DA8 /* fuse_common_compat.h in Headers */,
 				DE31150D1395608000AB9DA8 /* fuse_common.h in Headers */,
 				DE31150E1395608000AB9DA8 /* fuse_compat.h in Headers */,
-				DE31150F1395608000AB9DA8 /* fuse_darwin.h in Headers */,
 				DE3115101395608000AB9DA8 /* fuse_kernel.h in Headers */,
 				DE3115111395608000AB9DA8 /* fuse_lowlevel_compat.h in Headers */,
 				DE3115121395608000AB9DA8 /* fuse_lowlevel.h in Headers */,
