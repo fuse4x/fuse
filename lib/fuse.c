@@ -3906,9 +3906,7 @@ struct fuse_context *fuse_get_context_compat22(void)
 {
 	return &fuse_get_context_internal()->ctx;
 }
-#ifndef __APPLE__
 FUSE_SYMVER(".symver fuse_get_context_compat22,fuse_get_context@FUSE_2.2");
-#endif
 
 int fuse_getgroups(int size, gid_t list[])
 {
@@ -4393,14 +4391,12 @@ struct fuse *fuse_new_compat1(int fd, int flags,
 				      11);
 }
 
-#ifndef __APPLE__
 FUSE_SYMVER(".symver fuse_exited,__fuse_exited@");
 FUSE_SYMVER(".symver fuse_process_cmd,__fuse_process_cmd@");
 FUSE_SYMVER(".symver fuse_read_cmd,__fuse_read_cmd@");
 FUSE_SYMVER(".symver fuse_set_getcontext_func,__fuse_set_getcontext_func@");
 FUSE_SYMVER(".symver fuse_new_compat2,fuse_new@");
 FUSE_SYMVER(".symver fuse_new_compat22,fuse_new@FUSE_2.2");
-#endif
 
 #endif /* !__FreeBSD__ && !__APPLE__ */
 
@@ -4412,6 +4408,4 @@ struct fuse *fuse_new_compat25(int fd, struct fuse_args *args,
 					op_size, 25);
 }
 
-#ifndef __APPLE__
 FUSE_SYMVER(".symver fuse_new_compat25,fuse_new@FUSE_2.5");
-#endif

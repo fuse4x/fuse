@@ -9,11 +9,15 @@
 #include "config.h"
 #include <pthread.h>
 
-/* Versioned symbols confuse the dynamic linker in uClibc */
-#ifndef __UCLIBC__
-#define FUSE_SYMVER(x) __asm__(x)
-#else
+/*
+  Versioned symbols
+    - confuse the dynamic linker in uClibc
+    - not supported on MacOSX (in MachO binary format)
+*/
+#if (__UCLIBC__ || __APPLE__)
 #define FUSE_SYMVER(x)
+#else
+#define FUSE_SYMVER(x) __asm__(x)
 #endif
 
 #ifndef USE_UCLIBC

@@ -203,6 +203,6 @@ void fuse_chan_destroy(struct fuse_chan *ch)
 	free(ch);
 }
 
-#if ( !__FreeBSD__ && !__APPLE__ )
+#ifndef __FreeBSD__
 FUSE_SYMVER(".symver fuse_chan_new_compat24,fuse_chan_new@FUSE_2.4");
 #endif
