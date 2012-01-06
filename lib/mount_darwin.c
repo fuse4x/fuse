@@ -194,7 +194,7 @@ static const struct fuse_opt fuse_mount_opts[] = {
 #define FUSE_MOUNT_OPT_PARSE_U32(key, param_name) \
 	case KEY_ ## key: \
 		if (sscanf(arg, #param_name "=%u", &(param)) < 0) { \
-			perror("fuse4x " #param_name " parameter:"); \
+			perror("fuse4x " #param_name " parameter"); \
 			return -1; \
 		} \
 		mo->fuse_args.param_name = (uint32_t)param; \
@@ -574,7 +574,7 @@ int fuse_kern_mount(const char *mountpoint, struct fuse_args *args)
 
 			struct stat sb;
 			if (fstat(fd, &sb) < 0) {
-				perror("fuse4x fstat:");
+				perror("fuse4x fstat");
 				return -1;
 			}
 			opts.fuse_args.rdev = sb.st_rdev;
