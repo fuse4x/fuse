@@ -39,6 +39,8 @@ unless File.exists?('Makefile') then
   if release then
     archs = '-arch i386 -arch x86_64'
     flags += "CFLAGS='#{archs} -mmacosx-version-min=10.5' LDFLAGS='#{archs}' --disable-dependency-tracking"
+  else
+    flags += "CFLAGS='-g -O0'"
   end
 
   system('autoreconf -f -i -Wall,no-obsolete') or abort
