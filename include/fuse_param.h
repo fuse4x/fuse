@@ -44,11 +44,11 @@
  */
 #define FUSE_DEFAULT_BLOCKSIZE             4096
 
-#define FUSE_MIN_BLOCKSIZE                 512
+#define FUSE_MIN_BLOCKSIZE                 1
 #define FUSE_MAX_BLOCKSIZE                 MAXPHYS
 
-#ifndef MAX_UPL_TRANSFER
-#define MAX_UPL_TRANSFER 256
+#ifndef MAX_UPL_SIZE
+#define MAX_UPL_SIZE 8192
 #endif
 
 /*
@@ -60,7 +60,7 @@
 #define FUSE_DEFAULT_IOSIZE                (16 * PAGE_SIZE)
 
 #define FUSE_MIN_IOSIZE                    512
-#define FUSE_MAX_IOSIZE                    (MAX_UPL_TRANSFER * PAGE_SIZE)
+#define FUSE_MAX_IOSIZE                    (MAX_UPL_SIZE * PAGE_SIZE)
 
 #define FUSE_DEFAULT_DAEMON_TIMEOUT                60     /* s */
 #define FUSE_MIN_DAEMON_TIMEOUT                    0      /* s */
@@ -81,13 +81,13 @@
 /* User-Kernel IPC Buffer */
 
 #define FUSE_MIN_USERKERNEL_BUFSIZE        (128  * 1024)
-#define FUSE_MAX_USERKERNEL_BUFSIZE        (16   * 1024 * 1024)
+#define FUSE_MAX_USERKERNEL_BUFSIZE        FUSE_MAX_IOSIZE
 
 #define FUSE_REASONABLE_XATTRSIZE          FUSE_MIN_USERKERNEL_BUFSIZE
 
 #endif /* KERNEL */
 
-#define FUSE_DEFAULT_USERKERNEL_BUFSIZE    (16   * 1024 * 1024)
+#define FUSE_DEFAULT_USERKERNEL_BUFSIZE    FUSE_MAX_IOSIZE
 
 #define FUSE_LINK_MAX                      LINK_MAX
 #define FUSE_UIO_BACKUP_MAX                8
