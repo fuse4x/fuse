@@ -5,7 +5,7 @@
 #                 redeploys kext to local machine and restarts it
 
 CWD = File.dirname(__FILE__)
-KEXT_DIR = '/System/Library/Extensions/'
+KEXT_DIR = '/Library/Extensions/'
 Dir.chdir(CWD)
 
 release = ARGV.include?('--release')

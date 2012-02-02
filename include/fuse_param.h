@@ -18,7 +18,7 @@
 
 /* Paths */
 
-#define FUSE4X_KEXT_PATH                  "/System/Library/Extensions/fuse4x.kext"
+#define FUSE4X_KEXT_PATH                  "/Library/Extensions/fuse4x.kext"
 #define FUSE4X_LOAD_PROG                  FUSE4X_KEXT_PATH "/Support/load_fuse4x"
 
 /* Device Interface */
