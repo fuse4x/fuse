@@ -50,14 +50,14 @@ libfuse4x_la_SOURCES = 		\
 	$(mount_source)
 
 if !DARWIN
-libfuse4x_la_LDFLAGS = @libfuse_libs@ -version-number 2:8:6 \
+libfuse4x_la_LDFLAGS = @libfuse_libs@ -version-number 2:8:7 \
 	-Wl,--version-script,$(srcdir)/fuse_versionscript
 
 libulockmgr_la_SOURCES = ulockmgr.c
 libulockmgr_la_LDFLAGS = -pthread -version-number 1:0:1
 
 else
-libfuse4x_la_LDFLAGS = -version-number 2:8:6
+libfuse4x_la_LDFLAGS = -version-number 2:8:7
 endif
 
 EXTRA_DIST = fuse_versionscript
