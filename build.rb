@@ -38,9 +38,9 @@ unless File.exists?('Makefile') then
   flags = ''
   if release then
     archs = '-arch i386 -arch x86_64'
-    flags += "CFLAGS='#{archs} -mmacosx-version-min=10.5' LDFLAGS='#{archs}' --disable-dependency-tracking"
+    flags = "CFLAGS='#{archs} -D_DARWIN_USE_64_BIT_INODE -mmacosx-version-min=10.5' LDFLAGS='#{archs}' --disable-dependency-tracking"
   else
-    flags += "CFLAGS='-g -O0'"
+    flags = "CFLAGS='-g -O0'"
   end
 
   system('autoreconf -f -i -Wall,no-obsolete') or abort
@@ -57,4 +57,23 @@ if root_dir
   # or be precise depend on fuse installed to /usr/local/lib. So in case if we build distribution package
   # we still install it to both places, to system and to root dir.
   system(cmd + ' DESTDIR=' + root_dir)
+end
+
+
+# Compile ino32 dynamic library and create a compatibility links for it
+if release then
+  system('git clean -xdf')
+
+  archs = '-arch i386 -arch x86_64'
+  flags = "CFLAGS='#{archs} -D_DARWIN_NO_64_BIT_INODE -mmacosx-version-min=10.5' LDFLAGS='#{archs}' --disable-dependency-tracking"
+  system('autoreconf -f -i -Wall,no-obsolete') or abort
+  system("./configure #{flags} --disable-static") or abort
+  system('make -s -j3') or abort
+
+  install_dir = "#{root_dir}/usr/local/lib"
+
+  # An ugly way to mimic libtools
+  system("sudo cp lib/.libs/libfuse4x.dylib #{install_dir}/libfuse4x_ino32.dylib && cd #{install_dir} && " +
+         "sudo ln -sf libfuse4x_ino32.dylib libfuse.2.dylib && sudo ln -sf libfuse4x_ino32.dylib libfuse.dylib && sudo ln -sf libfuse4x_ino32.dylib libfuse.0.dylib && " +
+         "sudo ln -sf libfuse4x.dylib libfuse_ino64.dylib && sudo ln -sf libfuse4x.dylib libfuse_ino64.2.dylib") or abort
 end
