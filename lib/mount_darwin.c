@@ -174,6 +174,7 @@ static const struct fuse_opt fuse_mount_opts[] = {
 
 	FUSE_OPT_KEY("init_timeout=", KEY_IGNORED),
 	FUSE_OPT_KEY("ping_diskarb", KEY_IGNORED),
+	FUSE_OPT_KEY("noping_diskarb", KEY_IGNORED),
 	FUSE_OPT_KEY("subtype=", KEY_IGNORED),
 	FUSE_OPT_END
 };
