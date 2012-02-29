@@ -5,7 +5,7 @@
   This program can be distributed under the terms of the GNU GPL.
   See the file COPYING.
 
-  gcc -Wall `pkg-config fuse --cflags --libs` fusexmp.c -o fusexmp
+  gcc -Wall `pkg-config fuse --cflags --libs` -DHAVE_SETXATTR fusexmp.c -o fusexmp
 */
 
 #define FUSE_USE_VERSION 26
@@ -314,18 +314,18 @@ static int xmp_fsync(const char *path, int isdatasync,
 #ifdef HAVE_SETXATTR
 /* xattr operations are optional and can safely be left unimplemented */
 static int xmp_setxattr(const char *path, const char *name, const char *value,
-			size_t size, int flags)
+			size_t size, int flags, uint32_t position)
 {
-	int res = lsetxattr(path, name, value, size, flags);
+	int res = setxattr(path, name, value, size, position, flags | XATTR_NOFOLLOW);
 	if (res == -1)
 		return -errno;
 	return 0;
 }
 
 static int xmp_getxattr(const char *path, const char *name, char *value,
-			size_t size)
+			size_t size, uint32_t position)
 {
-	int res = lgetxattr(path, name, value, size);
+	int res = getxattr(path, name, value, size, position, XATTR_NOFOLLOW);
 	if (res == -1)
 		return -errno;
 	return res;
@@ -333,7 +333,7 @@ static int xmp_getxattr(const char *path, const char *name, char *value,
 
 static int xmp_listxattr(const char *path, char *list, size_t size)
 {
-	int res = llistxattr(path, list, size);
+	int res = listxattr(path, list, size, XATTR_NOFOLLOW);
 	if (res == -1)
 		return -errno;
 	return res;
@@ -341,7 +341,7 @@ static int xmp_listxattr(const char *path, char *list, size_t size)
 
 static int xmp_removexattr(const char *path, const char *name)
 {
-	int res = lremovexattr(path, name);
+	int res = removexattr(path, name, XATTR_NOFOLLOW);
 	if (res == -1)
 		return -errno;
 	return 0;
