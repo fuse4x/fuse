@@ -422,29 +422,6 @@ void fuse_kern_unmount(const char *mountpoint, int fd)
 	if (!mountpoint)
 		return;
 
-	// In XNU (opposite to Linux kernel) close() syscall cannot call our device _close function until there are any in-fligh
-	// requests to the device.
-	// And in case if we run fuse_loop() in a separate thread and call fuse_exit/fuse_unmount in the main one we have a deadlock.
-	// fuse_loop blocked on read() and waits for either a filesystem request or when filesystem become dead, and
-	// close() cannot mark the filesystem dead until read() is finished. Here is the deadlock stacktrace:
-	// close syscall is blocked in kernel:
-	//   msleep (in mach_kernel) + 157 (0x49149d)
-	//   fileproc_drain (in mach_kernel) + 169 (0x4737e2)
-	//   fdrelse (in mach_kernel) + 282 (0x475945)
-	//   close_nocancel (in mach_kernel) + 141 (0x475a39)
-	//   unix_syscall64 (in mach_kernel) + 617 (0x4f82fb)
-	//   lo64_unix_scall (in mach_kernel) + 77 (0x2a251d)
-	// fuse_session_loop/read() is blocked in:
-	//   msleep()
-	//   fuse_device_read()
-	//
-	//
-	// This deadlock can be destroyed by a filesystem request - read() syscall wakeups, returns to the userspace and at this time
-	// close() finally marks the filesystem as dead.
-	//
-	// The solution is to use the fuse device ioctl() to mark filesystem as dead, read() wakeups at this time and never blocks again.
-	// Let me know if you have better idea for avoiding this deadlock.
-	ioctl(fd, FUSEDEVIOCSETDAEMONDEAD);
 	close(fd);
 	unmount(mountpoint, MNT_FORCE);
 	return;

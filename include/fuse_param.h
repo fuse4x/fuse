@@ -94,10 +94,4 @@
 
 #define FUSE_MAXNAMLEN                     255
 
-
-/* FUSEDEVIOCxxx */
-
-/* Mark the daemon as dead. */
-#define FUSEDEVIOCSETDAEMONDEAD        _IO('F', 1)
-
 #endif /* _FUSE_PARAM_H_ */
