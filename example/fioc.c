@@ -80,7 +80,7 @@ static int fioc_getattr(const char *path, struct stat *stbuf)
 		stbuf->st_nlink = 2;
 		break;
 	case FIOC_FILE:
-		stbuf->st_mode = S_IFREG | 0644;
+		stbuf->st_mode = S_IFBLK | 0644;
 		stbuf->st_nlink = 1;
 		stbuf->st_size = fioc_size;
 		break;
