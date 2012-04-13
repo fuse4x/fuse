@@ -6,6 +6,7 @@
 #ifndef _FUSE_PARAM_H_
 #define _FUSE_PARAM_H_
 
+#include <AvailabilityMacros.h>
 #include <mach/vm_param.h>
 #include <sys/ioctl.h>
 
@@ -47,20 +48,27 @@
 #define FUSE_MIN_BLOCKSIZE                 1
 #define FUSE_MAX_BLOCKSIZE                 MAXPHYS
 
-#ifndef MAX_UPL_SIZE
-#define MAX_UPL_SIZE 8192
+#ifdef MAC_OS_X_VERSION_10_7
+#  define MAX_IO_PAGES 8192
+#else
+/*
+ * Before 10.7 because of a bug there is an increased probability of a kernel panic
+ * due to potentially running out of vm maps if a buf_map() is called on large (32Mb) IO's
+ * (and there is other stuff doing a lot of user-kernel maps, like some driver).
+ * This is fixed in 10.7.
+ */
+#  define MAX_IO_PAGES 4096
 #endif
 
+#define FUSE_MIN_IOSIZE                    PAGE_SIZE
+#define FUSE_MAX_IOSIZE                    (MAX_IO_PAGES * PAGE_SIZE)
 /*
  * This is default I/O size used while accessing the virtual storage devices.
  * This can be changed on a per-mount basis.
  *
  * Nevertheless, the I/O size must be at least as big as the block size.
  */
-#define FUSE_DEFAULT_IOSIZE                (16 * PAGE_SIZE)
-
-#define FUSE_MIN_IOSIZE                    512
-#define FUSE_MAX_IOSIZE                    (MAX_UPL_SIZE * PAGE_SIZE)
+#define FUSE_DEFAULT_IOSIZE                FUSE_MAX_IOSIZE
 
 #define FUSE_DEFAULT_DAEMON_TIMEOUT                60     /* s */
 #define FUSE_MIN_DAEMON_TIMEOUT                    0      /* s */
@@ -80,7 +88,7 @@
 
 /* User-Kernel IPC Buffer */
 
-#define FUSE_MIN_USERKERNEL_BUFSIZE        (128  * 1024)
+#define FUSE_MIN_USERKERNEL_BUFSIZE        (32  * PAGE_SIZE)
 #define FUSE_MAX_USERKERNEL_BUFSIZE        FUSE_MAX_IOSIZE
 
 #define FUSE_REASONABLE_XATTRSIZE          FUSE_MIN_USERKERNEL_BUFSIZE
