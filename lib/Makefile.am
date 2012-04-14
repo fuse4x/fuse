@@ -3,11 +3,7 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/compat -DFUSERMOUNT_DIR=\"$(bindir)\" \
   -D_FILE_OFFSET_BITS=64 -D_REENTRANT -DFUSE_USE_VERSION=26
 
-lib_LTLIBRARIES = libfuse4x.la
-
-if !DARWIN
-lib_LTLIBRARIES += libulockmgr.la
-endif
+lib_LTLIBRARIES = libfuse4x.la libulockmgr.la
 
 if BSD
 mount_source = mount_bsd.c
@@ -52,12 +48,11 @@ libfuse4x_la_SOURCES = 		\
 if !DARWIN
 libfuse4x_la_LDFLAGS = @libfuse_libs@ -version-number 2:8:7 \
 	-Wl,--version-script,$(srcdir)/fuse_versionscript
+else
+libfuse4x_la_LDFLAGS = @libfuse_libs@ -version-number 2:8:7
+endif
 
 libulockmgr_la_SOURCES = ulockmgr.c
 libulockmgr_la_LDFLAGS = -pthread -version-number 1:0:1
-
-else
-libfuse4x_la_LDFLAGS = -version-number 2:8:7
-endif
 
 EXTRA_DIST = fuse_versionscript
