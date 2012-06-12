@@ -390,7 +390,7 @@ static bool check_kext_version(bool quiet_mode)
 					CFSTR("OK")
 				);
 			}
-			fprintf(stderr, "fuse4x kernel extension was not loaded. Please check /var/log/system.log for more information.\n");
+			fprintf(stderr, "fuse4x kernel extension was not loaded. Please check /var/log/{system|kernel|debug}.log for more information.\n");
 			return false;
 		}
 
