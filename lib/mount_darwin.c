@@ -86,7 +86,6 @@ enum {
 	KEY_INIT_TIMEOUT,
 	KEY_IOSIZE,
 	KEY_JAIL_SYMLINKS,
-	KEY_NEGATIVE_VNCACHE,
 	KEY_NO_APPLEDOUBLE,
 	KEY_NO_APPLEXATTR,
 	KEY_NO_ATTRCACHE,
@@ -154,7 +153,6 @@ static const struct fuse_opt fuse_mount_opts[] = {
 	FUSE_OPT_KEY("fstypename=", KEY_FSTYPENAME),
 	FUSE_OPT_KEY("iosize=", KEY_IOSIZE),
 	FUSE_OPT_KEY("jail_symlinks", KEY_JAIL_SYMLINKS),
-	FUSE_OPT_KEY("negative_vncache", KEY_NEGATIVE_VNCACHE),
 	FUSE_OPT_KEY("noappledouble", KEY_NO_APPLEDOUBLE),
 	FUSE_OPT_KEY("noapplexattr", KEY_NO_APPLEXATTR),
 	FUSE_OPT_KEY("noattrcache", KEY_NO_ATTRCACHE),
@@ -172,6 +170,7 @@ static const struct fuse_opt fuse_mount_opts[] = {
 	FUSE_OPT_KEY("sparse", KEY_SPARSE),
 	FUSE_OPT_KEY("quiet", KEY_QUIET),
 
+	FUSE_OPT_KEY("negative_vncache", KEY_IGNORED),
 	FUSE_OPT_KEY("init_timeout=", KEY_IGNORED),
 	FUSE_OPT_KEY("ping_diskarb", KEY_IGNORED),
 	FUSE_OPT_KEY("noping_diskarb", KEY_IGNORED),
@@ -246,7 +245,6 @@ static int fuse_mount_opt_proc(void *data, const char *arg, int key,
 	FUSE_MOUNT_OPT(DIRECT_IO)
 	FUSE_MOUNT_OPT(EXTENDED_SECURITY)
 	FUSE_MOUNT_OPT(JAIL_SYMLINKS)
-	FUSE_MOUNT_OPT(NEGATIVE_VNCACHE)
 	FUSE_MOUNT_OPT(NO_APPLEDOUBLE)
 	FUSE_MOUNT_OPT(NO_APPLEXATTR)
 	FUSE_MOUNT_OPT(NO_ATTRCACHE)
@@ -499,12 +497,6 @@ int fuse_kern_mount(const char *mountpoint, struct fuse_args *args)
 		(opts.fuse_args.altflags & FUSE_MOPT_ALLOW_ROOT)) {
 
 		fprintf(stderr, "fuse4x: allow_other and allow_root are mutually exclusive\n");
-		return -1;
-	}
-
-	if ((opts.fuse_args.altflags & FUSE_MOPT_NEGATIVE_VNCACHE) &&
-		(opts.fuse_args.altflags & FUSE_MOPT_NO_VNCACHE)) {
-		fprintf(stderr, "fuse4x: 'negative_vncache' can't be used with 'novncache'\n");
 		return -1;
 	}
 
