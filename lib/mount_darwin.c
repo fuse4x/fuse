@@ -93,7 +93,6 @@ enum {
 	KEY_NO_READAHEAD,
 	KEY_NO_SYNCONCLOSE,
 	KEY_NO_SYNCWRITES,
-	KEY_NO_UBC,
 	KEY_NO_VNCACHE,
 	KEY_USE_INO,
 	KEY_VOLNAME,
@@ -146,6 +145,7 @@ static const struct fuse_opt fuse_mount_opts[] = {
 	FUSE_OPT_KEY("default_permissions", KEY_DEFAULT_PERMISSIONS),
 	FUSE_OPT_KEY("defer_permissions", KEY_DEFER_PERMISSIONS),
 	FUSE_OPT_KEY("direct_io", KEY_DIRECT_IO),
+	FUSE_OPT_KEY("noubc", KEY_DIRECT_IO), // noubc is synonim for direct_io
 	FUSE_OPT_KEY("extended_security", KEY_EXTENDED_SECURITY),
 	FUSE_OPT_KEY("fsid=", KEY_FSID),
 	FUSE_OPT_KEY("fsname=", KEY_FSNAME),
@@ -160,7 +160,6 @@ static const struct fuse_opt fuse_mount_opts[] = {
 	FUSE_OPT_KEY("noreadahead", KEY_NO_READAHEAD),
 	FUSE_OPT_KEY("nosynconclose", KEY_NO_SYNCONCLOSE),
 	FUSE_OPT_KEY("nosyncwrites", KEY_NO_SYNCWRITES),
-	FUSE_OPT_KEY("noubc", KEY_NO_UBC),
 	FUSE_OPT_KEY("novncache", KEY_NO_VNCACHE),
 	FUSE_OPT_KEY("use_ino", KEY_USE_INO),
 	FUSE_OPT_KEY("volname=", KEY_VOLNAME),
@@ -251,7 +250,6 @@ static int fuse_mount_opt_proc(void *data, const char *arg, int key,
 	FUSE_MOUNT_OPT(NO_READAHEAD)
 	FUSE_MOUNT_OPT(NO_SYNCONCLOSE)
 	FUSE_MOUNT_OPT(NO_SYNCWRITES)
-	FUSE_MOUNT_OPT(NO_UBC)
 	FUSE_MOUNT_OPT(NO_VNCACHE)
 	FUSE_MOUNT_OPT(USE_INO)
 	FUSE_MOUNT_OPT(AUTO_CACHE)
@@ -268,7 +266,7 @@ static int fuse_mount_opt_proc(void *data, const char *arg, int key,
 		return 0;
 
 	case KEY_NO_LOCALCACHES:
-		mo->fuse_args.altflags |= (FUSE_MOPT_NO_ATTRCACHE | FUSE_MOPT_NO_READAHEAD | FUSE_MOPT_NO_UBC | FUSE_MOPT_NO_VNCACHE);
+		mo->fuse_args.altflags |= (FUSE_MOPT_NO_ATTRCACHE | FUSE_MOPT_NO_READAHEAD | FUSE_MOPT_DIRECT_IO | FUSE_MOPT_NO_VNCACHE);
 		return 0;
 
 	case KEY_VOLICON: {
@@ -502,7 +500,7 @@ int fuse_kern_mount(const char *mountpoint, struct fuse_args *args)
 
 	// 'nosyncwrites' must not appear with either 'noubc' or 'noreadahead'.
 	if ((opts.fuse_args.altflags & FUSE_MOPT_NO_SYNCWRITES) &&
-		(opts.fuse_args.altflags & (FUSE_MOPT_NO_UBC | FUSE_MOPT_NO_READAHEAD))) {
+		(opts.fuse_args.altflags & (FUSE_MOPT_DIRECT_IO | FUSE_MOPT_NO_READAHEAD))) {
 		fprintf(stderr, "fuse4x: disabling local caching can't be used with 'nosyncwrites'\n");
 		return -1;
 	}

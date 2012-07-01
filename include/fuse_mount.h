@@ -63,7 +63,6 @@ enum {
     FUSE_MOPT_NO_READAHEAD        = 1ULL << 20,
     FUSE_MOPT_NO_SYNCONCLOSE      = 1ULL << 21,
     FUSE_MOPT_NO_SYNCWRITES       = 1ULL << 22,
-    FUSE_MOPT_NO_UBC              = 1ULL << 23,
     FUSE_MOPT_NO_VNCACHE          = 1ULL << 24,
     FUSE_MOPT_USE_INO             = 1ULL << 25,
     FUSE_MOPT_AUTO_CACHE          = 1ULL << 27,
