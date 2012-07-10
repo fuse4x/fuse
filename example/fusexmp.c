@@ -17,19 +17,36 @@
 #ifdef linux
 /* For pread()/pwrite() */
 #define _XOPEN_SOURCE 500
+#elif __APPLE__
+#define _GNU_SOURCE
+#endif
+
+#if defined(_POSIX_C_SOURCE)
+typedef unsigned char  u_char;
+typedef unsigned short u_short;
+typedef unsigned int   u_int;
+typedef unsigned long  u_long;
 #endif
 
 #include <fuse.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
 #include <sys/time.h>
-#ifdef HAVE_SETXATTR
 #include <sys/xattr.h>
-#endif
+#include <sys/attr.h>
+#include <sys/param.h>
+
+#define G_PREFIX   "org"
+#define G_KAUTH_FILESEC_XATTR G_PREFIX ".apple.system.Security"
+#define A_PREFIX   "com"
+#define A_KAUTH_FILESEC_XATTR A_PREFIX ".apple.system.Security"
+#define XATTR_APPLE_PREFIX   "com.apple."
+
 
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
@@ -67,7 +84,7 @@ static int xmp_readlink(const char *path, char *buf, size_t size)
 
 
 static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-		       off_t offset, struct fuse_file_info *fi)
+			   off_t offset, struct fuse_file_info *fi)
 {
 	DIR *dp;
 	struct dirent *de;
@@ -167,6 +184,18 @@ static int xmp_rename(const char *from, const char *to)
 	return 0;
 }
 
+static int xmp_exchange(const char *path1, const char *path2, unsigned long options)
+{
+	int res;
+
+	res = exchangedata(path1, path2, options);
+	if (res == -1) {
+		return -errno;
+	}
+
+	return 0;
+}
+
 static int xmp_link(const char *from, const char *to)
 {
 	int res;
@@ -174,6 +203,174 @@ static int xmp_link(const char *from, const char *to)
 	res = link(from, to);
 	if (res == -1)
 		return -errno;
+
+	return 0;
+}
+
+static int xmp_fsetattr_x(const char *path, struct setattr_x *attr,
+					struct fuse_file_info *fi)
+{
+	int res;
+	uid_t uid = -1;
+	gid_t gid = -1;
+
+	if (SETATTR_WANTS_MODE(attr)) {
+		res = lchmod(path, attr->mode);
+		if (res == -1) {
+			return -errno;
+		}
+	}
+
+	if (SETATTR_WANTS_UID(attr)) {
+		uid = attr->uid;
+	}
+
+	if (SETATTR_WANTS_GID(attr)) {
+		gid = attr->gid;
+	}
+
+	if ((uid != -1) || (gid != -1)) {
+		res = lchown(path, uid, gid);
+		if (res == -1) {
+			return -errno;
+		}
+	}
+
+	if (SETATTR_WANTS_SIZE(attr)) {
+		if (fi) {
+			res = ftruncate(fi->fh, attr->size);
+		} else {
+			res = truncate(path, attr->size);
+		}
+		if (res == -1) {
+			return -errno;
+		}
+	}
+
+	if (SETATTR_WANTS_MODTIME(attr)) {
+		struct timeval tv[2];
+		if (!SETATTR_WANTS_ACCTIME(attr)) {
+			gettimeofday(&tv[0], NULL);
+		} else {
+			tv[0].tv_sec = attr->acctime.tv_sec;
+			tv[0].tv_usec = attr->acctime.tv_nsec / 1000;
+		}
+		tv[1].tv_sec = attr->modtime.tv_sec;
+		tv[1].tv_usec = attr->modtime.tv_nsec / 1000;
+		res = utimes(path, tv);
+		if (res == -1) {
+			return -errno;
+		}
+	}
+
+	if (SETATTR_WANTS_CRTIME(attr)) {
+		struct attrlist attributes;
+
+		attributes.bitmapcount = ATTR_BIT_MAP_COUNT;
+		attributes.reserved = 0;
+		attributes.commonattr = ATTR_CMN_CRTIME;
+		attributes.dirattr = 0;
+		attributes.fileattr = 0;
+		attributes.forkattr = 0;
+		attributes.volattr = 0;
+
+		res = setattrlist(path, &attributes, &attr->crtime,
+				  sizeof(struct timespec), FSOPT_NOFOLLOW);
+
+		if (res == -1) {
+			return -errno;
+		}
+	}
+
+	if (SETATTR_WANTS_CHGTIME(attr)) {
+		struct attrlist attributes;
+
+		attributes.bitmapcount = ATTR_BIT_MAP_COUNT;
+		attributes.reserved = 0;
+		attributes.commonattr = ATTR_CMN_CHGTIME;
+		attributes.dirattr = 0;
+		attributes.fileattr = 0;
+		attributes.forkattr = 0;
+		attributes.volattr = 0;
+
+		res = setattrlist(path, &attributes, &attr->chgtime,
+				  sizeof(struct timespec), FSOPT_NOFOLLOW);
+
+		if (res == -1) {
+			return -errno;
+		}
+	}
+
+	if (SETATTR_WANTS_BKUPTIME(attr)) {
+		struct attrlist attributes;
+
+		attributes.bitmapcount = ATTR_BIT_MAP_COUNT;
+		attributes.reserved = 0;
+		attributes.commonattr = ATTR_CMN_BKUPTIME;
+		attributes.dirattr = 0;
+		attributes.fileattr = 0;
+		attributes.forkattr = 0;
+		attributes.volattr = 0;
+
+		res = setattrlist(path, &attributes, &attr->bkuptime,
+				  sizeof(struct timespec), FSOPT_NOFOLLOW);
+
+		if (res == -1) {
+			return -errno;
+		}
+	}
+
+	if (SETATTR_WANTS_FLAGS(attr)) {
+		res = lchflags(path, attr->flags);
+		if (res == -1) {
+			return -errno;
+		}
+	}
+
+	return 0;
+}
+
+static int xmp_setattr_x(const char *path, struct setattr_x *attr)
+{
+	return xmp_fsetattr_x(path, attr, (struct fuse_file_info *)0);
+}
+
+static int xmp_getxtimes(const char *path, struct timespec *bkuptime,
+				   struct timespec *crtime)
+{
+	int res = 0;
+	struct attrlist attributes;
+
+	attributes.bitmapcount = ATTR_BIT_MAP_COUNT;
+	attributes.reserved	   = 0;
+	attributes.commonattr  = 0;
+	attributes.dirattr	   = 0;
+	attributes.fileattr	   = 0;
+	attributes.forkattr	   = 0;
+	attributes.volattr	   = 0;
+
+	struct xtimeattrbuf {
+		uint32_t size;
+		struct timespec xtime;
+	} __attribute__ ((packed));
+
+	struct xtimeattrbuf buf;
+
+	attributes.commonattr = ATTR_CMN_BKUPTIME;
+	res = getattrlist(path, &attributes, &buf, sizeof(buf), FSOPT_NOFOLLOW);
+	if (res == 0) {
+		(void)memcpy(bkuptime, &(buf.xtime), sizeof(struct timespec));
+	} else {
+		(void)memset(bkuptime, 0, sizeof(struct timespec));
+	}
+
+	attributes.commonattr = ATTR_CMN_CRTIME;
+	res = getattrlist(path, &attributes, &buf, sizeof(buf), FSOPT_NOFOLLOW);
+	if (res == 0) {
+		(void)memcpy(crtime, &(buf.xtime), sizeof(struct timespec));
+	} else {
+		(void)memset(crtime, 0, sizeof(struct timespec));
+	}
 
 	return 0;
 }
@@ -241,7 +438,7 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 }
 
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
-		    struct fuse_file_info *fi)
+			struct fuse_file_info *fi)
 {
 	int fd;
 	int res;
@@ -260,7 +457,7 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 }
 
 static int xmp_write(const char *path, const char *buf, size_t size,
-		     off_t offset, struct fuse_file_info *fi)
+			 off_t offset, struct fuse_file_info *fi)
 {
 	int fd;
 	int res;
@@ -300,7 +497,7 @@ static int xmp_release(const char *path, struct fuse_file_info *fi)
 }
 
 static int xmp_fsync(const char *path, int isdatasync,
-		     struct fuse_file_info *fi)
+			 struct fuse_file_info *fi)
 {
 	/* Just a stub.	 This method is optional and can safely be left
 	   unimplemented */
@@ -311,44 +508,122 @@ static int xmp_fsync(const char *path, int isdatasync,
 	return 0;
 }
 
-#ifdef HAVE_SETXATTR
-/* xattr operations are optional and can safely be left unimplemented */
 static int xmp_setxattr(const char *path, const char *name, const char *value,
-			size_t size, int flags, uint32_t position)
+				  size_t size, int flags, uint32_t position)
 {
-	int res = setxattr(path, name, value, size, position, flags | XATTR_NOFOLLOW);
-	if (res == -1)
+	int res;
+
+	if (!strncmp(name, XATTR_APPLE_PREFIX, sizeof(XATTR_APPLE_PREFIX) - 1)) {
+		flags &= ~(XATTR_NOSECURITY);
+	}
+
+	if (!strcmp(name, A_KAUTH_FILESEC_XATTR)) {
+
+		char new_name[MAXPATHLEN];
+
+		memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
+		memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
+
+		res = setxattr(path, new_name, value, size, position, XATTR_NOFOLLOW);
+
+	} else {
+		res = setxattr(path, name, value, size, position, XATTR_NOFOLLOW);
+	}
+
+	if (res == -1) {
 		return -errno;
+	}
+
 	return 0;
 }
 
-static int xmp_getxattr(const char *path, const char *name, char *value,
-			size_t size, uint32_t position)
+static int xmp_getxattr(const char *path, const char *name, char *value, size_t size,
+				  uint32_t position)
 {
-	int res = getxattr(path, name, value, size, position, XATTR_NOFOLLOW);
-	if (res == -1)
+	int res;
+
+	if (strcmp(name, A_KAUTH_FILESEC_XATTR) == 0) {
+
+		char new_name[MAXPATHLEN];
+
+		memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
+		memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
+
+		res = getxattr(path, new_name, value, size, position, XATTR_NOFOLLOW);
+
+	} else {
+		res = getxattr(path, name, value, size, position, XATTR_NOFOLLOW);
+	}
+
+	if (res == -1) {
 		return -errno;
+	}
+
 	return res;
 }
 
 static int xmp_listxattr(const char *path, char *list, size_t size)
 {
-	int res = listxattr(path, list, size, XATTR_NOFOLLOW);
-	if (res == -1)
+	ssize_t res = listxattr(path, list, size, XATTR_NOFOLLOW);
+	if (res > 0) {
+		if (list) {
+			size_t len = 0;
+			char *curr = list;
+			do {
+				size_t thislen = strlen(curr) + 1;
+				if (strcmp(curr, G_KAUTH_FILESEC_XATTR) == 0) {
+					memmove(curr, curr + thislen, res - len - thislen);
+					res -= thislen;
+					break;
+				}
+				curr += thislen;
+				len += thislen;
+			} while (len < res);
+		}
+	}
+
+	if (res == -1) {
 		return -errno;
+	}
+
 	return res;
 }
 
 static int xmp_removexattr(const char *path, const char *name)
 {
-	int res = removexattr(path, name, XATTR_NOFOLLOW);
-	if (res == -1)
+	int res;
+
+	if (strcmp(name, A_KAUTH_FILESEC_XATTR) == 0) {
+
+		char new_name[MAXPATHLEN];
+
+		memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
+		memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
+
+		res = removexattr(path, new_name, XATTR_NOFOLLOW);
+
+	} else {
+		res = removexattr(path, name, XATTR_NOFOLLOW);
+	}
+
+	if (res == -1) {
 		return -errno;
+	}
+
 	return 0;
 }
-#endif /* HAVE_SETXATTR */
+
+static void* xmp_init(struct fuse_conn_info *conn)
+{
+	FUSE_ENABLE_SETVOLNAME(conn);
+	FUSE_ENABLE_XTIMES(conn);
+
+	return NULL;
+}
+
 
 static struct fuse_operations xmp_oper = {
+	.init		= xmp_init,
 	.getattr	= xmp_getattr,
 	.access		= xmp_access,
 	.readlink	= xmp_readlink,
@@ -376,6 +651,10 @@ static struct fuse_operations xmp_oper = {
 	.listxattr	= xmp_listxattr,
 	.removexattr	= xmp_removexattr,
 #endif
+	.exchange	 = xmp_exchange,
+	.getxtimes	 = xmp_getxtimes,
+	.setattr_x	 = xmp_setattr_x,
+	.fsetattr_x	 = xmp_fsetattr_x,
 };
 
 int main(int argc, char *argv[])
